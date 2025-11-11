@@ -42,7 +42,7 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	sequence := core.SendPacket(cross, sendPacket)
+	sequence := core.SendPacket(cross, nil, sendPacket)
 
 	// Acknowledge the packet
 	// TODO make send packet commitment bytes and ackPacket.packet commitment bytes match

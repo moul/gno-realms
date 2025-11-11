@@ -10,13 +10,12 @@ import (
 	"gno.land/p/aib/ibc/host"
 	"gno.land/p/aib/ibc/lightclient"
 	"gno.land/p/aib/ibc/types"
-	"gno.land/p/aib/limitedbanker"
 	"gno.land/p/nt/ufmt"
 )
 
 const maxTimeoutDelta time.Duration = 24 * time.Hour
 
-func SendPacket(cur realm, msg types.MsgSendPacket) (sequence uint64) {
+func SendPacket(cur realm, banker banker.Banker, msg types.MsgSendPacket) (sequence uint64) {
 	if err := msg.ValidateBasic(); err != nil {
 		panic(err)
 	}
@@ -83,15 +82,6 @@ func SendPacket(cur realm, msg types.MsgSendPacket) (sequence uint64) {
 		types.AttributeKeyEncodedPacketHex, hex.EncodeToString(packet.ProtoMarshal()),
 	)
 
-	// Build a banker limited to spend OriginSend.
-	// NOTE: ideally we should use banker.NewBanker(banker.BankerTypeOriginSend)
-	// but this kind of banker "can only be instantiated by the origin package".
-	// Does that mean we should pass such banker in the realm function parameters
-	// directly ?
-	banker := limitedbanker.New(
-		banker.NewBanker(banker.BankerTypeRealmSend),
-		banker.OriginSend(),
-	)
 	// Invoke registed app OnSendPacket() for each payload.SourcePort.
 	for _, payload := range msg.Payloads {
 		app := store.route(payload.SourcePort)

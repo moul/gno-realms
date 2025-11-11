@@ -41,7 +41,7 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	sequence := core.SendPacket(cross, sendPacket)
+	sequence := core.SendPacket(cross, nil, sendPacket)
 
 	// Acknowledge the packet
 	ackPacket := types.MsgAcknowledgement{

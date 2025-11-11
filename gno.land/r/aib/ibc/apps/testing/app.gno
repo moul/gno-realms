@@ -1,12 +1,12 @@
 package testing
 
 import (
+	"chain"
 	"chain/banker"
 	"chain/runtime"
 
 	"gno.land/p/aib/ibc/app"
 	"gno.land/p/aib/ibc/types"
-	"gno.land/p/aib/limitedbanker"
 	"gno.land/p/nt/ufmt"
 )
 
@@ -134,9 +134,13 @@ func (a *App) Report() string {
 
 func (a *Args) Report() string {
 	var s string
-	// Report spendable coins if banker provided
-	if banker, ok := a.Banker.(*limitedbanker.LimitedBanker); ok {
-		s += ufmt.Sprintf("- spendable: %s\n", banker.SpendableCoins())
+	// if Banker provided (for OnSendPacket only), report spendable balance
+	if a.Banker != nil {
+		coins := banker.OriginSend()
+		if len(coins) == 0 {
+			coins = chain.NewCoins(chain.NewCoin("ugnot", 0))
+		}
+		s += ufmt.Sprintf("- spendable: %s\n", coins)
 	}
 	s += ufmt.Sprintf("- sourceClient: %s\n", a.SourceClient)
 	s += ufmt.Sprintf("- destinationClient: %s\n", a.DestinationClient)

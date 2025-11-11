@@ -43,7 +43,7 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	sequence := core.SendPacket(cross, sendPacket)
+	sequence := core.SendPacket(cross, nil, sendPacket)
 
 	// Change block time to expire the lightclient
 	ctx := testing.GetContext()

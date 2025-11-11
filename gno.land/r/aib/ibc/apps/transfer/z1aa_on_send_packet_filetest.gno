@@ -28,9 +28,9 @@ func main() {
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, "07-tendermint-2")
 
-	bank := banker.NewBanker(banker.BankerTypeRealmIssue)
+	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 	// TODO not possible to mint tokens without the realm path prefix
-	bank.IssueCoin(runtime.CurrentRealm().Address(), "uatone", 100)
+	// bank.IssueCoin(runtime.CurrentRealm().Address(), "uatone", 100)
 
 	signer := runtime.OriginCaller()
 	payload := transfer.FungibleTokenPacketData{
@@ -53,19 +53,15 @@ func main() {
 		},
 	}
 
-	// Send the coins sent to this filetest to the r/aib/ibc/core realm
 	ibcCoreAddr := chain.PackageAddress("gno.land/r/aib/ibc/core")
-	bank.SendCoins(
-		runtime.CurrentRealm().Address(), ibcCoreAddr, banker.OriginSend(),
-	)
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
-	println("r/aib/ibc/core balance before SendPacket:", bank.GetCoins(ibcCoreAddr))
-	println("transferAppAddr balance before SendPacket:", bank.GetCoins(transferAppAddr))
+	println("r/aib/ibc/core balance before SendPacket:", banker.GetCoins(ibcCoreAddr))
+	println("transferAppAddr balance before SendPacket:", banker.GetCoins(transferAppAddr))
 
-	core.SendPacket(cross, packet)
+	core.SendPacket(cross, banker, packet)
 
-	println("\nr/aib/ibc/core balance after SendPacket:", bank.GetCoins(ibcCoreAddr))
-	println("transferAppAddr balance after SendPacket:", bank.GetCoins(transferAppAddr))
+	println("\nr/aib/ibc/core balance after SendPacket:", banker.GetCoins(ibcCoreAddr))
+	println("transferAppAddr balance after SendPacket:", banker.GetCoins(transferAppAddr))
 }
 
 // Output:

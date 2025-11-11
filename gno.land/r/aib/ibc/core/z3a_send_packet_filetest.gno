@@ -1,6 +1,9 @@
 package main
 
+// PKGPATH: gno.land/r/aib/main
+
 import (
+	"chain/banker"
 	"crypto/sha256"
 	"time"
 
@@ -55,8 +58,9 @@ func main() {
 			},
 		},
 	}
+	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 
-	sequence := core.SendPacket(cross, packet)
+	sequence := core.SendPacket(cross, banker, packet)
 
 	println("returned sequence:", sequence)
 	println("next sequence:", core.Render("clients/"+clientID+"/next_sequence_send"))
@@ -66,7 +70,7 @@ func main() {
 	println(app2.Report())
 
 	// Send the packet an other time to assert sequence increasing
-	sequence = core.SendPacket(cross, packet)
+	sequence = core.SendPacket(cross, nil, packet)
 
 	println("returned sequence:", sequence)
 	println("next sequence:", core.Render("clients/"+clientID+"/next_sequence_send"))

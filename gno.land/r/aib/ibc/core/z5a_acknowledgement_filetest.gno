@@ -1,6 +1,8 @@
+// PKGPATH: gno.land/r/aib/main
 package main
 
 import (
+	"chain/banker"
 	"encoding/hex"
 	"time"
 
@@ -43,7 +45,9 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	sequence := core.SendPacket(cross, sendPacket)
+	banker := banker.NewBanker(banker.BankerTypeOriginSend)
+
+	sequence := core.SendPacket(cross, banker, sendPacket)
 
 	// Acknowledge the packet
 	ackPacket := types.MsgAcknowledgement{

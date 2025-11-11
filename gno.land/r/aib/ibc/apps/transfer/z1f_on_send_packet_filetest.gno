@@ -3,7 +3,6 @@
 package main
 
 import (
-	"chain"
 	"chain/banker"
 	"chain/runtime"
 	"crypto/sha256"
@@ -48,15 +47,9 @@ func main() {
 			},
 		},
 	}
+	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 
-	// Send the coins sent to this filetest to the r/aib/ibc/core realm
-	bank := banker.NewBanker(banker.BankerTypeRealmSend)
-	ibcCoreAddr := chain.PackageAddress("gno.land/r/aib/ibc/core")
-	bank.SendCoins(
-		runtime.CurrentRealm().Address(), ibcCoreAddr, banker.OriginSend(),
-	)
-
-	core.SendPacket(cross, packet)
+	core.SendPacket(cross, banker, packet)
 }
 
 // Error:

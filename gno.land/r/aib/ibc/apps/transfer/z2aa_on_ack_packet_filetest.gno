@@ -52,20 +52,15 @@ func main() {
 			},
 		},
 	}
-
-	// Send the coins sent to this filetest to the r/aib/ibc/core realm
-	bank := banker.NewBanker(banker.BankerTypeRealmSend)
+	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 	ibcCoreAddr := chain.PackageAddress("gno.land/r/aib/ibc/core")
-	bank.SendCoins(
-		runtime.CurrentRealm().Address(), ibcCoreAddr, banker.OriginSend(),
-	)
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
-	println("r/aib/ibc/core balance before SendPacket:", bank.GetCoins(ibcCoreAddr))
-	println("transferAppAddr balance before SendPacket:", bank.GetCoins(transferAppAddr))
+	println("r/aib/ibc/core balance before SendPacket:", banker.GetCoins(ibcCoreAddr))
+	println("transferAppAddr balance before SendPacket:", banker.GetCoins(transferAppAddr))
 	// Send the packet
-	sequence := core.SendPacket(cross, sendPacket)
-	println("\nr/aib/ibc/core balance after SendPacket:", bank.GetCoins(ibcCoreAddr))
-	println("transferAppAddr balance after SendPacket:", bank.GetCoins(transferAppAddr))
+	sequence := core.SendPacket(cross, banker, sendPacket)
+	println("\nr/aib/ibc/core balance after SendPacket:", banker.GetCoins(ibcCoreAddr))
+	println("transferAppAddr balance after SendPacket:", banker.GetCoins(transferAppAddr))
 
 	// Acknowledge the packet
 	ackPacket := types.MsgAcknowledgement{
@@ -131,7 +126,7 @@ func main() {
 	res := core.Acknowledgement(cross, ackPacket)
 
 	println("\nack res:", res)
-	println("transferAppAddr balance after Acknowledgement:", bank.GetCoins(transferAppAddr))
+	println("transferAppAddr balance after Acknowledgement:", banker.GetCoins(transferAppAddr))
 }
 
 // Output:

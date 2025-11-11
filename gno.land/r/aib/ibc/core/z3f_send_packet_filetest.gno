@@ -38,7 +38,7 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	core.SendPacket(cross, packet)
+	core.SendPacket(cross, nil, packet)
 }
 
 // Error:

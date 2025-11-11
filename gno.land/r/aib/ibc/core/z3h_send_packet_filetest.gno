@@ -33,7 +33,7 @@ func main() {
 		}},
 	}
 
-	core.SendPacket(cross, packet)
+	core.SendPacket(cross, nil, packet)
 }
 
 // Error:
