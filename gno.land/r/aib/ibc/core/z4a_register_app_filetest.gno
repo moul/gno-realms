@@ -7,8 +7,8 @@ import (
 
 // RegisterApp success
 func main() {
-	core.RegisterApp(cross, "app1", &appstesting.App{})
-	core.RegisterApp(cross, "app2", &appstesting.App{})
+	core.RegisterApp(cross, "app1", appstesting.NewApp(cross))
+	core.RegisterApp(cross, "app2", appstesting.NewApp(cross))
 
 	println("----------- assert render apps")
 	println(core.Render("apps"))

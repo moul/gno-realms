@@ -7,7 +7,7 @@ import (
 
 // RegisterApp fails because portID is not alphanumeric
 func main() {
-	core.RegisterApp(cross, "gno.land/r/aib/ibc", &appstesting.App{})
+	core.RegisterApp(cross, "gno.land/r/aib/ibc", appstesting.NewApp(cross))
 }
 
 // Error:

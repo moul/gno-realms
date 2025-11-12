@@ -7,8 +7,8 @@ import (
 
 // RegisterApp error when already registered
 func main() {
-	core.RegisterApp(cross, "app1", &appstesting.App{})
-	core.RegisterApp(cross, "app1", &appstesting.App{})
+	core.RegisterApp(cross, "app1", appstesting.NewApp(cross))
+	core.RegisterApp(cross, "app1", appstesting.NewApp(cross))
 }
 
 // Error:

@@ -26,8 +26,8 @@ func main() {
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, counterpartyID)
 	// Register app
 	var (
-		app       = &appstesting.App{}
 		appPortID = "app"
+		app       = appstesting.NewApp(cross)
 	)
 	core.RegisterApp(cross, appPortID, app)
 	// Send a packet

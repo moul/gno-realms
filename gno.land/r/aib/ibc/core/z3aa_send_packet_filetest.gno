@@ -29,7 +29,7 @@ func main() {
 	println("next sequence:", core.Render("clients/"+clientID+"/next_sequence_send"))
 	// Register  app
 	var (
-		app       = &appstesting.App{}
+		app       = appstesting.NewApp(cross)
 		appPortID = "app1"
 	)
 	core.RegisterApp(cross, appPortID, app)

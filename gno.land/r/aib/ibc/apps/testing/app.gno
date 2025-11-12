@@ -10,29 +10,43 @@ import (
 	"gno.land/p/nt/ufmt"
 )
 
-type Args struct {
-	Banker            banker.Banker
-	SourceClient      string
-	DestinationClient string
-	Sequence          uint64
-	Payload           types.Payload
-	Ack               []byte
-}
-
-type App struct {
-	Calls struct {
-		OnSendPacket                  []Args
-		OnSendPacketReturn            error
-		OnRecvPacket                  []Args
-		OnRecvPacketReturn            types.RecvPacketResult
-		OnTimeoutPacket               []Args
-		OnTimeoutPacketReturn         error
-		OnAcknowledgementPacket       []Args
-		OnAcknowledgementPacketReturn error
+type (
+	App struct {
+		id    string
+		Calls struct {
+			OnSendPacket                  []Args
+			OnSendPacketReturn            error
+			OnRecvPacket                  []Args
+			OnRecvPacketReturn            types.RecvPacketResult
+			OnTimeoutPacket               []Args
+			OnTimeoutPacketReturn         error
+			OnAcknowledgementPacket       []Args
+			OnAcknowledgementPacketReturn error
+		}
 	}
-}
+	Args struct {
+		Banker            banker.Banker
+		SourceClient      string
+		DestinationClient string
+		Sequence          uint64
+		Payload           types.Payload
+		Ack               []byte
+	}
+)
 
-var _ app.IBCApp = &App{}
+var (
+	_    app.IBCApp = &App{}
+	apps []*App
+)
+
+func NewApp(_ realm) *App {
+	app := &App{}
+	// store the app in the realm is required to prevent the following panic:
+	// "cannot directly modify readonly tainted object (w/o method)"
+	// Other than that it is not used.
+	apps = append(apps, app)
+	return app
+}
 
 // Implements app.IBCApp
 func (a *App) OnSendPacket(
@@ -52,6 +66,10 @@ func (a *App) OnSendPacket(
 			Payload:           payload,
 		})
 	return a.Calls.OnSendPacketReturn
+}
+
+func (a *App) SetOnSendPacketReturn(err error) {
+	a.Calls.OnSendPacketReturn = err
 }
 
 // Implements app.IBCApp
