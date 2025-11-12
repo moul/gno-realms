@@ -2,7 +2,7 @@ module aibgno
 
 go 1.25.3
 
-replace github.com/gnolang/gno => github.com/allinbits/gno v0.0.0-20251023093304-c326e9a690f8
+replace github.com/gnolang/gno => github.com/allinbits/gno v0.0.0-20251112152254-1e7f4cbbae25
 
 tool (
 	github.com/gnolang/gno/contribs/gnodev

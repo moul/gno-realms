@@ -1,5 +1,5 @@
 // PKGPATH: gno.land/r/aib/main
-// SEND: 100uatone
+// SEND: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
 package main
 
 import (
@@ -66,11 +66,11 @@ func main() {
 }
 
 // Output:
-// signer balance before SendPacket: 100ugnot
+// signer balance before SendPacket: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
 // transferAppAddr balance before SendPacket:
 //
 // signer balance after SendPacket:
-// transferAppAddr balance after SendPacket: 100ugnot
+// transferAppAddr balance after SendPacket: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
 
 // Events:
 // [
@@ -113,7 +113,7 @@ func main() {
 //       },
 //       {
 //         "key": "encoded_packet_hex",
-//         "value": "0801120f30372d74656e6465726d696e742d311a0f30372d74656e6465726d696e742d3220e2a1d8cc042a790a087472616e7366657212087472616e736665721a0769637332302d3122166170706c69636174696f6e2f782d70726f746f6275662a420a0575676e6f7412033130301a28673177796d75343764726872306b7571323039386d3739326c797467746a326e797837377972736d220a61746f6e653175736572"
+//         "value": "0801120f30372d74656e6465726d696e742d311a0f30372d74656e6465726d696e742d3220e2a1d8cc042a93010a087472616e7366657212087472616e736665721a0769637332302d3122166170706c69636174696f6e2f782d70726f746f6275662a5c0a1f7472616e736665722f30372d74656e6465726d696e742d322f7561746f6e6512033130301a286731676a73386e6664726435357a33787539676a6361746e6a3239766b7775797834666671786439220a61746f6e653175736572"
 //       }
 //     ],
 //     "pkg_path": "gno.land/r/aib/ibc/core"
@@ -123,7 +123,7 @@ func main() {
 //     "attrs": [
 //       {
 //         "key": "sender",
-//         "value": "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm"
+//         "value": "g1gjs8nfdrd55z3xu9gjcatnj29vkwuyx4ffqxd9"
 //       },
 //       {
 //         "key": "receiver",
@@ -131,7 +131,7 @@ func main() {
 //       },
 //       {
 //         "key": "denom",
-//         "value": "ugnot"
+//         "value": "transfer/07-tendermint-2/uatone"
 //       },
 //       {
 //         "key": "amount",
