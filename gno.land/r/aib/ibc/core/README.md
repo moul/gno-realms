@@ -106,3 +106,39 @@ Emitted event:
   },
 ]
 ```
+
+## Acknowledgement
+
+See [`zz_acknowledgement_example_filetest.gno`](./zz_acknowledgement_example_filetest.gno)
+
+Emitted event:
+```json
+[
+  {
+    "type": "acknowledge_packet",
+    "attrs": [
+      {
+        "key": "packet_source_client",
+        "value": "07-tendermint-1"
+      },
+      {
+        "key": "packet_dest_client",
+        "value": "07-tendermint-42"
+      },
+      {
+        "key": "packet_sequence",
+        "value": "1"
+      },
+      {
+        "key": "packet_timeout_timestamp",
+        "value": "1234571490"
+      },
+      {
+        "key": "encoded_packet_hex",
+        "value": "0801120f30372d74656e6465726d696e742d311a1030372d74656e6465726d696e742d343220e2a1d8cc042a300a03617070120f64657374696e6174696f6e506f72741a02763122106170706c69636174696f6e2f6a736f6e2a027b7d"
+      }
+    ],
+    "pkg_path": "gno.land/r/aib/ibc/core"
+  }
+]
+```
