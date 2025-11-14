@@ -70,15 +70,7 @@ func main() {
 			SourceClient:      clientID,
 			DestinationClient: counterpartyID,
 			TimeoutTimestamp:  sendPacket.TimeoutTimestamp,
-			Payloads: []types.Payload{
-				{
-					SourcePort:      transfer.PortID,
-					DestinationPort: transfer.PortID,
-					Encoding:        transfer.EncodingProtobuf,
-					Value:           payloadBz,
-					Version:         transfer.V1,
-				},
-			},
+			Payloads:          sendPacket.Payloads,
 		},
 		Acknowledgement: types.Acknowledgement{
 			// This error should trigger a refund

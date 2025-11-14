@@ -56,13 +56,7 @@ func main() {
 			SourceClient:      clientID,
 			DestinationClient: counterpartyID,
 			TimeoutTimestamp:  sendPacket.TimeoutTimestamp,
-			Payloads: []types.Payload{{
-				SourcePort:      appPortID,
-				DestinationPort: "destinationPort",
-				Encoding:        "application/json",
-				Value:           []byte("{}"),
-				Version:         "v1",
-			}},
+			Payloads:          sendPacket.Payloads,
 		},
 		Acknowledgement: types.Acknowledgement{
 			AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"BQ=="}}`)},

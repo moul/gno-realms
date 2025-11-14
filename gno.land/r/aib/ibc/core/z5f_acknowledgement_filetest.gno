@@ -51,13 +51,7 @@ func main() {
 			SourceClient:      clientID,
 			DestinationClient: counterpartyID,
 			TimeoutTimestamp:  1,
-			Payloads: []types.Payload{{
-				SourcePort:      appPortID,
-				DestinationPort: "destinationPort",
-				Encoding:        "application/json",
-				Value:           []byte("{}"),
-				Version:         "v1",
-			}},
+			Payloads:          sendPacket.Payloads,
 		},
 		Acknowledgement: types.Acknowledgement{
 			AppAcknowledgements: [][]byte{[]byte("ack")},
