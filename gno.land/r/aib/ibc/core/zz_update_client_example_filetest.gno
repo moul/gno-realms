@@ -12,15 +12,15 @@ import (
 
 func main() {
 	var (
-		clientID      = "07-tendermint-1"                  // TODO update
-		chainID       = "chain-id-2"                       // TODO update
-		timestamp     = time.Now()                         // TODO update
-		blockhash     = sha256.Sum256([]byte("block-5"))   // TODO update
-		parsethash    = sha256.Sum256([]byte("parset"))    // TODO update
-		consensushash = sha256.Sum256([]byte("consensus")) // TODO update
-		apphash       = sha256.Sum256([]byte("apphash"))   // TODO update
-		height        = types.Height{2, 5}                 // TODO update
-		valset        = &tendermint.ValidatorSet{          // TODO update
+		clientID      = "07-tendermint-1"                  // XXX update
+		chainID       = "chain-id-2"                       // XXX update
+		timestamp     = time.Now()                         // XXX update
+		blockhash     = sha256.Sum256([]byte("block-5"))   // XXX update
+		parsethash    = sha256.Sum256([]byte("parset"))    // XXX update
+		consensushash = sha256.Sum256([]byte("consensus")) // XXX update
+		apphash       = sha256.Sum256([]byte("apphash"))   // XXX update
+		height        = types.Height{2, 5}                 // XXX update
+		valset        = &tendermint.ValidatorSet{          // XXX update
 			Validators: []*tendermint.Validator{
 				{
 					Address:     testing.GenAddr("val1"),
@@ -40,8 +40,8 @@ func main() {
 			},
 			TotalVotingPower: 5,
 		}
-		trustedHeight = types.Height{2, 2}        // TODO update
-		trustedValset = &tendermint.ValidatorSet{ // TODO update
+		trustedHeight = types.Height{2, 2}        // XXX update
+		trustedValset = &tendermint.ValidatorSet{ // XXX update
 			Validators: []*tendermint.Validator{
 				{
 					Address:     testing.GenAddr("val1"),
@@ -85,7 +85,7 @@ func main() {
 				AppHash:            apphash[:],
 				LastResultsHash:    nil,                         //FIXME?
 				EvidenceHash:       nil,                         //FIXME?
-				ProposerAddress:    testing.GenAddr("proposer"), // TODO update
+				ProposerAddress:    testing.GenAddr("proposer"), // XXX update
 			},
 			Commit: &tendermint.Commit{
 				Height: height.RevisionHeight,
@@ -100,13 +100,13 @@ func main() {
 				Signatures: []tendermint.CommitSig{
 					{
 						BlockIDFlag:      tendermint.BlockIDFlagCommit,
-						ValidatorAddress: testing.GenAddr("val1"),          // TODO update
-						Signature:        testing.GenSignature("valsign1"), // TODO update
+						ValidatorAddress: testing.GenAddr("val1"),          // XXX update
+						Signature:        testing.GenSignature("valsign1"), // XXX update
 					},
 					{
 						BlockIDFlag:      tendermint.BlockIDFlagCommit,
-						ValidatorAddress: testing.GenAddr("val2"),          // TODO update
-						Signature:        testing.GenSignature("valsign2"), // TODO update
+						ValidatorAddress: testing.GenAddr("val2"),          // XXX update
+						Signature:        testing.GenSignature("valsign2"), // XXX update
 					},
 				},
 			},

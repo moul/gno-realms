@@ -13,26 +13,26 @@ func main() {
 	// Acknowledge the packet
 	ackPacket := types.MsgAcknowledgement{
 		Packet: types.Packet{
-			Sequence:          42,                        // TODO update
-			SourceClient:      "clientID",                // TODO update
-			DestinationClient: "counterPartyID",          // TODO update
-			TimeoutTimestamp:  uint64(time.Now().Unix()), // TODO update: must be the same as the timestamp of the send packet
+			Sequence:          42,                        // XXX update
+			SourceClient:      "clientID",                // XXX update
+			DestinationClient: "counterPartyID",          // XXX update
+			TimeoutTimestamp:  uint64(time.Now().Unix()), // XXX update: must be the same as the timestamp of the send packet
 			Payloads: []types.Payload{{
-				SourcePort:      "appID",             // TODO update
-				DestinationPort: "counterPartyAppID", //TODO update
+				SourcePort:      "appID",             // XXX update
+				DestinationPort: "counterPartyAppID", //XXX update
 				Encoding:        "application/json",
-				Value:           []byte("{}"), // TODO update
-				Version:         "v1",         // TODO update: version of app (transfer uses v1)
+				Value:           []byte("{}"), // XXX update
+				Version:         "v1",         // XXX update: version of app (transfer uses v1)
 			}},
 		},
 		Acknowledgement: types.Acknowledgement{
-			// TODO update: this is the response of the app sent in the RecvPacket
+			// XXX update: this is the response of the app sent in the RecvPacket
 			// response of the counterparty client.
 			AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"BQ=="}}`)},
 		},
 		// Write the proof of acknowledgement written during the RecvPacket of the
 		// counterparty client.
-		// TODO update (and good luck for templating this :))
+		// XXX update (and good luck for templating this :))
 		ProofAcked: []ics23.CommitmentProof_Exist{
 			{
 				// iavl proof
@@ -54,7 +54,7 @@ func main() {
 					"00", nil),
 			},
 		},
-		ProofHeight: types.NewHeight(1, 2000), // TODO update
+		ProofHeight: types.NewHeight(1, 2000), // XXX update
 	}
 
 	res := core.Acknowledgement(cross, ackPacket)

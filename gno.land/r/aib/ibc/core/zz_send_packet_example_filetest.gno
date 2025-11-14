@@ -11,15 +11,15 @@ import (
 func main() {
 	var (
 		packet = types.MsgSendPacket{
-			SourceClient:     "",        // TODO update
-			TimeoutTimestamp: uint64(0), // TODO update
+			SourceClient:     "",        // XXX update
+			TimeoutTimestamp: uint64(0), // XXX update
 			Payloads: []types.Payload{
 				{
-					SourcePort:      "",           // TODO update
-					DestinationPort: "",           // TODO update
-					Encoding:        "",           // TODO update
-					Value:           []byte("{}"), // TODO update
-					Version:         "",           // TODO update
+					SourcePort:      "",           // XXX update
+					DestinationPort: "",           // XXX update
+					Encoding:        "",           // XXX update
+					Value:           []byte("{}"), // XXX update
+					Version:         "",           // XXX update
 				},
 			},
 		}

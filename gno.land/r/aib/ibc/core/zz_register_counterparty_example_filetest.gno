@@ -6,12 +6,12 @@ import (
 
 func main() {
 	var (
-		clientID                 = ""
+		clientID                 = "" // XXX update
 		counterpartyMerklePrefix = [][]byte{
-			[]byte("iavlStoreKey"),
-			[]byte("storeKey"),
+			[]byte("iavlStoreKey"), // XXX update
+			[]byte("storeKey"),     // XXX update
 		}
-		counterpartyClientID = ""
+		counterpartyClientID = "" // XXX update
 	)
 	core.RegisterCounterparty(cross, clientID, counterpartyMerklePrefix, counterpartyClientID)
 }

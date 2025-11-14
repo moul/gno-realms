@@ -45,7 +45,6 @@ func main() {
 	sequence := core.SendPacket(cross, nil, sendPacket)
 
 	// Acknowledge the packet
-	// TODO make send packet commitment bytes and ackPacket.packet commitment bytes match
 	ackPacket := types.MsgAcknowledgement{
 		Packet: types.Packet{
 			Sequence:          sequence,
