@@ -165,3 +165,15 @@ type MsgTimeout struct {
 	ProofUnreceived []ics23.CommitmentProof_Nonexist
 	ProofHeight     Height
 }
+
+func (msg *MsgTimeout) ValidateBasic() error {
+	if len(msg.ProofUnreceived) == 0 {
+		return errors.New("cannot submit an empty timeout proof")
+	}
+	for i, proof := range msg.ProofUnreceived {
+		if proof.Nonexist == nil {
+			return ufmt.Errorf("invalid commitment proof #%d: proof.NonExit is nil", i)
+		}
+	}
+	return msg.Packet.ValidateBasic()
+}

@@ -51,7 +51,6 @@ func main() {
 	}
 	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 	testing.SetOriginCaller(signer)
-	// TODO move address in ibctesting
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
 	println("signer balance before SendPacket:", banker.GetCoins(signer))
 	println("transferAppAddr balance before SendPacket:", banker.GetCoins(transferAppAddr))

@@ -115,12 +115,11 @@ func Acknowledgement(cur realm, msg types.MsgAcknowledgement) types.ResponseResu
 	if c == nil {
 		panic(ufmt.Sprintf("client %s not found", clientID))
 	}
+	// check client is active
 	if status := c.lightClient.Status(); status != lightclient.Active {
 		panic(ufmt.Sprintf("client (%s) status is %s", clientID, status))
 	}
-	// lookup counterparty from packet identifiers
-	// note this will be either the client identifier for IBC V2 paths
-	// or an aliased channel identifier for IBC V1 paths
+	// check counterparty
 	if c.counterpartyClientID != msg.Packet.DestinationClient {
 		panic(ufmt.Sprintf(
 			"counterparty id (%s) does not match packet destination id (%s)",
@@ -205,7 +204,37 @@ func Acknowledgement(cur realm, msg types.MsgAcknowledgement) types.ResponseResu
 }
 
 func Timeout(cur realm, msg types.MsgTimeout) types.ResponseResultType {
-	// TODO
+	if err := msg.ValidateBasic(); err != nil {
+		panic(err)
+	}
 	// TODO check if relayer address is in whitelist
+
+	clientID := msg.Packet.SourceClient
+	c := store.getClient(clientID)
+	if c == nil {
+		panic(ufmt.Sprintf("client %s not found", clientID))
+	}
+	// check client is active
+	if status := c.lightClient.Status(); status != lightclient.Active {
+		panic(ufmt.Sprintf("client (%s) status is %s", clientID, status))
+	}
+	// check counterparty
+	if c.counterpartyClientID != msg.Packet.DestinationClient {
+		panic(ufmt.Sprintf(
+			"counterparty id (%s) does not match packet destination id (%s)",
+			c.counterpartyClientID, msg.Packet.DestinationClient,
+		))
+	}
+	// check that timeout timestamp has passed on the other end
+	proofTimestamp, err := c.lightClient.TimestampAtHeight(msg.ProofHeight)
+	if err != nil {
+		panic(err)
+	}
+	if proofTimestamp < msg.Packet.TimeoutTimestamp {
+		panic(ufmt.Errorf("proof timestamp: %d, timeout timestamp: %d",
+			proofTimestamp, msg.Packet.TimeoutTimestamp))
+	}
+	// TODO
+
 	return types.RESPONSE_FAILURE
 }
