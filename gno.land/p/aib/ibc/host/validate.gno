@@ -80,33 +80,3 @@ func PortIdentifierValidator(id string) error {
 	}
 	return nil
 }
-
-// NewPathValidator takes in an Identifier Validator function and returns
-// a Path Validator function which requires path to consist of `/`-separated valid identifiers,
-// where a valid identifier is between 1-64 characters, contains only alphanumeric and some allowed
-// special characters (see IsValidID), and satisfies the custom `idValidator` function.
-func NewPathValidator(idValidator ValidateFn) ValidateFn {
-	return func(path string) error {
-		pathArr := strings.Split(path, "/")
-		if len(pathArr) > 0 && pathArr[0] == path {
-			return ufmt.Errorf("path %s doesn't contain any separator '/'", path)
-		}
-
-		for _, p := range pathArr {
-			// a path beginning or ending in a separator returns empty string elements.
-			if p == "" {
-				return ufmt.Errorf("path %s cannot begin or end with '/'", path)
-			}
-
-			if err := idValidator(p); err != nil {
-				return err
-			}
-			// Each path element must either be a valid identifier or constant number
-			if err := defaultIdentifierValidator(p, 1, DefaultMaxCharacterLength); err != nil {
-				return ufmt.Errorf("path %s contains an invalid identifier: '%s': %v", path, p, err)
-			}
-		}
-
-		return nil
-	}
-}
