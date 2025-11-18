@@ -7,6 +7,7 @@ replace github.com/gnolang/gno => github.com/allinbits/gno v0.0.0-20251112152254
 tool (
 	github.com/gnolang/gno/contribs/gnodev
 	github.com/gnolang/gno/gnovm/cmd/gno
+	github.com/gnolang/gno/gno.land/cmd/gnokey
 )
 
 require (
