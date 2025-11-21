@@ -14,3 +14,7 @@ gnodev:
 
 test: 
 	go tool gno test -v ./gno.land/...
+
+update-fork:
+	go mod edit -replace  github.com/gnolang/gno=github.com/allinbits/gno@ibc-fork
+	go mod tidy
