@@ -50,7 +50,9 @@ func main() {
 
 	// Acknowledge the packet
 	specs := ics23.IavlSpec()
-	// NOTE proof generated thanks to ./cmd/gen-proof
+	// Generate the proof of acknowledgement written during the RecvPacket of the
+	// counterparty client.
+	// NOTE proof generated thanks to ./cmd/gen-proof prefix2 07-tendermint-42 commitment BQ==
 	proofAcked := []ics23.CommitmentProof{
 
 		ics23.CommitmentProof_Exist{

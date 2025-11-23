@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"os"
@@ -19,6 +20,33 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
+	if flag.NArg() != 4 {
+		fmt.Println("Usage: gen-proof MERKLE_PREFIX CLIENT_ID TYPE RESULT")
+		os.Exit(1)
+	}
+	var (
+		merklePrefix = flag.Arg(0)
+		clientID     = flag.Arg(1)
+		proofType    = flag.Arg(2)
+		result       = flag.Arg(3)
+		key          []byte
+		value        []byte
+	)
+	switch proofType {
+	case "commitment":
+		key = []byte(merklePrefix + clientID + "\x03\x00\x00\x00\x00\x00\x00\x00\x01")
+		value = channelv2types.CommitAcknowledgement(
+			channelv2types.Acknowledgement{
+				AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"` + result + `"}}`)},
+			},
+		)
+	default:
+		fmt.Println("unhandled proof type", proofType)
+		os.Exit(1)
+	}
+
 	db := dbm.NewMemDB()
 	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	iavlStoreKey := storetypes.NewKVStoreKey("iavlStoreKey")
@@ -35,12 +63,6 @@ func main() {
 		iavlStore.Set(key, key)
 	}
 	// Enter the key we want to proof
-	key := []byte("prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01")
-	value := channelv2types.CommitAcknowledgement(
-		channelv2types.Acknowledgement{
-			AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"BQ=="}}`)},
-		},
-	)
 	iavlStore.Set(key, value)
 
 	cid := store.Commit()
