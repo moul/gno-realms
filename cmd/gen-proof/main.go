@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"html/template"
@@ -23,23 +24,29 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() != 4 {
-		fmt.Println("Usage: gen-proof MERKLE_PREFIX CLIENT_ID TYPE RESULT")
+		fmt.Println("Usage: gen-proof MERKLE_PREFIX CLIENT_ID TYPE APP_ACK")
 		os.Exit(1)
 	}
 	var (
 		merklePrefix = flag.Arg(0)
 		clientID     = flag.Arg(1)
 		proofType    = flag.Arg(2)
-		result       = flag.Arg(3)
+		appAckStr    = flag.Arg(3)
 		key          []byte
 		value        []byte
 	)
+	appAck := []byte(appAckStr)
+	// Try to decode appAck as hex
+	bz, err := hex.DecodeString(appAckStr)
+	if err == nil {
+		appAck = bz
+	}
 	switch proofType {
 	case "commitment":
 		key = []byte(merklePrefix + clientID + "\x03\x00\x00\x00\x00\x00\x00\x00\x01")
 		value = channelv2types.CommitAcknowledgement(
 			channelv2types.Acknowledgement{
-				AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"` + result + `"}}`)},
+				AppAcknowledgements: [][]byte{appAck},
 			},
 		)
 	default:
@@ -52,7 +59,7 @@ func main() {
 	iavlStoreKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(iavlStoreKey, storetypes.StoreTypeIAVL, nil)
-	err := store.LoadVersion(0)
+	err = store.LoadVersion(0)
 	if err != nil {
 		panic(err)
 	}

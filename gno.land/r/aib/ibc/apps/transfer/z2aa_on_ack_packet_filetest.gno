@@ -11,7 +11,6 @@ import (
 	"time"
 
 	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
-	ibctesting "gno.land/p/aib/ibc/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/aib/ics23"
 	"gno.land/r/aib/ibc/apps/transfer"
@@ -64,6 +63,59 @@ func main() {
 	println("transferAppAddr balance after SendPacket:", banker.GetCoins(transferAppAddr))
 
 	// Acknowledge the packet
+	specs := ics23.IavlSpec()
+	// Generate the proof of acknowledgement written during the RecvPacket of the
+	// counterparty client.
+	// NOTE proof generated thanks to:
+	// ./cmd/gen-proof prefix2 07-tendermint-42 commitment $(echo -n UNIVERSAL_ERROR_ACKNOWLEDGEMENT | sha256sum | cut -d' ' -f1)
+	proofAcked := []ics23.CommitmentProof{
+
+		ics23.CommitmentProof_Exist{
+			Exist: &ics23.ExistenceProof{
+				Key:   []byte("\x70\x72\x65\x66\x69\x78\x32\x30\x37\x2d\x74\x65\x6e\x64\x65\x72\x6d\x69\x6e\x74\x2d\x34\x32\x03\x00\x00\x00\x00\x00\x00\x00\x01"),
+				Value: []byte("\xe2\xfb\x30\xdf\xbf\x7a\xbd\xea\xca\x82\xd4\x26\x53\x4d\x2b\x3a\x9d\x54\x44\xdd\x2a\x87\xfa\x16\xd3\x8b\x77\xba\x1a\x13\xce\xd7"),
+				Leaf: &ics23.LeafOp{
+					Hash:         specs.LeafSpec.Hash,
+					PrehashKey:   specs.LeafSpec.PrehashKey,
+					PrehashValue: specs.LeafSpec.PrehashValue,
+					Length:       specs.LeafSpec.Length,
+					Prefix:       []byte("\x00\x02\x02"),
+				},
+				Path: []*ics23.InnerOp{
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x02\x04\x02\x20\x35\xf8\xea\x80\x53\x90\xe0\x84\x85\x4f\x39\x9b\x42\xcc\xde\xae\xa3\x3a\x1d\xed\xc1\x15\x63\x8a\xc4\x8d\x06\x00\x63\x7d\xba\x1f\x20"),
+						Suffix: []byte(""),
+					},
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x04\x08\x02\x20"),
+						Suffix: []byte("\x20\x79\x8e\x2c\xaa\x96\xfd\xfb\xa3\x76\xdd\xeb\x47\x99\x99\x54\xd2\xf4\x7e\x65\x16\x22\x64\xb0\x53\x6a\xb5\xdf\xf7\xfc\x0a\x2e\x07"),
+					},
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x06\x0c\x02\x20\x9a\xf3\x7d\xd5\x95\xa0\x19\x08\x03\xb5\xe0\x5a\xae\xf4\x2a\xe3\xfa\xd4\x99\xe4\xfb\xe3\x7f\x7c\xd3\x1c\xad\xff\x22\xa9\xee\x74\x20"),
+						Suffix: []byte(""),
+					},
+				},
+			},
+		},
+
+		ics23.CommitmentProof_Exist{
+			Exist: &ics23.ExistenceProof{
+				Key:   []byte("\x69\x61\x76\x6c\x53\x74\x6f\x72\x65\x4b\x65\x79"),
+				Value: []byte("\x91\x57\xa5\x00\xd6\xc8\xde\x17\x14\xba\xdf\x44\x6d\x17\xb6\xb8\xd3\xa5\x8b\x30\xf8\x54\x83\x18\x66\xd4\x33\x53\x6f\xd2\xea\xb9"),
+				Leaf: &ics23.LeafOp{
+					Hash:         specs.LeafSpec.Hash,
+					PrehashKey:   specs.LeafSpec.PrehashKey,
+					PrehashValue: specs.LeafSpec.PrehashValue,
+					Length:       specs.LeafSpec.Length,
+					Prefix:       []byte("\x00"),
+				},
+				Path: []*ics23.InnerOp{},
+			},
+		},
+	}
 	ackPacket := types.MsgAcknowledgement{
 		Packet: types.Packet{
 			Sequence:          sequence,
@@ -73,46 +125,10 @@ func main() {
 			Payloads:          sendPacket.Payloads,
 		},
 		Acknowledgement: types.Acknowledgement{
-			// This error should trigger a refund
+			// This UNIVERSAL_ERROR_ACKNOWLEDGEMENT error should trigger a refund
 			AppAcknowledgements: [][]byte{types.UniversalErrorAcknowledgement()},
 		},
-		// Write the proof of acknowledgement written during the RecvPacket of the
-		// counterparty client.
-		// (generated from https://github.com/tbruyelle/sdktools/blob/31452ec4783bc45db1f84fe43fde93033e6b5576/proof/proof.go#L56)
-		// ROOT 5467ca2d19a7b74dbcd20e33bda91932f912d76595872ec856945af96e743b82
-		// KEY 7072656669783230372d74656e6465726d696e742d3432030000000000000001 "prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01"
-		// VAL e2fb30dfbf7abdeaca82d426534d2b3a9d5444dd2a87fa16d38b77ba1a13ced7
-		// 0 LEAF PREFIX 000202
-		// 	0 OP PREFIX 0204022035f8ea805390e084854f399b42ccdeaea33a1dedc115638ac48d0600637dba1f20
-		// 	0 OP SUFFIX
-		// 	1 OP PREFIX 04080220
-		// 	1 OP SUFFIX 20798e2caa96fdfba376ddeb47999954d2f47e65162264b0536ab5dff7fc0a2e07
-		// 	2 OP PREFIX 060c02209af37dd595a0190803b5e05aaef42ae3fad499e4fbe37f7cd31cadff22a9ee7420
-		// 	2 OP SUFFIX
-		// KEY 6961766c53746f72654b6579 "iavlStoreKey"
-		// VAL 9157a500d6c8de1714badf446d17b6b8d3a58b30f854831866d433536fd2eab9
-		// 1 LEAF PREFIX 00
-		ProofAcked: []ics23.CommitmentProof{
-			ics23.CommitmentProof_Exist{
-				// iavl proof
-				Exist: ibctesting.NewExistenceProof(ics23.IavlSpec(),
-					[]byte("prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01"),
-					"e2fb30dfbf7abdeaca82d426534d2b3a9d5444dd2a87fa16d38b77ba1a13ced7",
-					"000202",
-					[][]string{
-						{"0204022035f8ea805390e084854f399b42ccdeaea33a1dedc115638ac48d0600637dba1f20", ""},
-						{"04080220", "20798e2caa96fdfba376ddeb47999954d2f47e65162264b0536ab5dff7fc0a2e07"},
-						{"060c02209af37dd595a0190803b5e05aaef42ae3fad499e4fbe37f7cd31cadff22a9ee7420", ""},
-					},
-				),
-			},
-			ics23.CommitmentProof_Exist{
-				// rootmulti proof
-				Exist: ibctesting.NewExistenceProof(ics23.IavlSpec(),
-					[]byte("iavlStoreKey"), "9157a500d6c8de1714badf446d17b6b8d3a58b30f854831866d433536fd2eab9",
-					"00", nil),
-			},
-		},
+		ProofAcked:  proofAcked,
 		ProofHeight: trustedHeight,
 	}
 
