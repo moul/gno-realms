@@ -21,7 +21,7 @@ func main() {
 		clientState    = tmtesting.NewClientState(chainID, trustedHeight)
 		apphash, _     = hex.DecodeString("a119217258843545bc79dd7df4c050c6c2a21b1de7c132dd065fd7463f743e2d")
 		valset         = tmtesting.GenValset()
-		consensusState = tmtesting.GenConsensusState(time.Now(), apphash[:], valset.Hash())
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, valset.Hash())
 		counterpartyID = "07-tendermint-42"
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
