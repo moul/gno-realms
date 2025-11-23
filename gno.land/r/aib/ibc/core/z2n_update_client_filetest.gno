@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"gno.land/p/aib/ibc/lightclient/tendermint"
-	"gno.land/p/aib/ibc/lightclient/tendermint/testing"
+	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/r/aib/ibc/core"
 )
@@ -15,8 +15,8 @@ func main() {
 	var (
 		chainID     = "atomone-1"
 		height      = uint64(2)
-		clientState = testing.NewClientState(chainID, types.NewHeight(1, height))
-		apphash     = testing.GenHash("apphash-2")
+		clientState = tmtesting.NewClientState(chainID, types.NewHeight(1, height))
+		apphash     = tmtesting.GenHash("apphash-2")
 		// priv=8a6cAbQSpDbebmcTEhCMPhhr/SkL/2pizo60yzHRkN9Uyk7RHOZm7g4xW+yeJh147/Z4/6HXF6gBwcFNkLsZ/A==
 		val1 = tendermint.NewValidator("9DIBYr64rywKO3Kk6+743xDHcEU=",
 			"VMpO0RzmZu4OMVvsniYdeO/2eP+h1xeoAcHBTZC7Gfw=", 2)
@@ -24,33 +24,35 @@ func main() {
 		val2 = tendermint.NewValidator("y+naL3ubs9q1bXrY9+uRxY9c+J8=",
 			"NeGV1CqewGUTpH5SxVRfkgYOMCVX84MyCslqtw9Ouvo=", 3)
 		valset         = tendermint.NewValset(val1, val2)
-		consensusState = testing.GenConsensusState(time.Now(), apphash, valset.Hash())
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, valset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, "07-tendermint-2")
 
 	// Update clientID
-	apphash = testing.GenHash("apphash-5")
+	apphash = tmtesting.GenHash("apphash-5")
 	var (
 		newHeight     = height + 3 // non adjacent heigth 5
 		newTimestamp  = consensusState.Timestamp.Add(time.Minute)
-		blockhash     = testing.B64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
-		parsethash    = testing.B64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
-		consensushash = testing.B64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
+		blockhash     = tmtesting.B64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
+		parsethash    = tmtesting.B64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
+		consensushash = tmtesting.B64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
 		trustedValset = tendermint.NewValset(val1, val2)
 		trustedHeight = clientState.LatestHeight
-		signatures    = []tendermint.CommitSig{
+		// NOTE: signatures generated thanks to:
+		// go run ./cmd/gen-block-signatures -privkeys=8a6cAbQSpDbebmcTEhCMPhhr/SkL/2pizo60yzHRkN9Uyk7RHOZm7g4xW+yeJh147/Z4/6HXF6gBwcFNkLsZ/A==,nWg6ETc62tyxd94lh8fFaQnZKaAW6vlS0L/4lfseJuI14ZXUKp7AZROkflLFVF+SBg4wJVfzgzIKyWq3D066+g==
+		signatures = []tendermint.CommitSig{
 			{
 				BlockIDFlag:      tendermint.BlockIDFlagCommit,
 				ValidatorAddress: valset.Validators[0].Address,
-				Timestamp:        testing.ToTime("2025-09-25T07:55:57.306746166Z"),
-				Signature:        testing.B64Dec("dXO4Y8p5cKwubGLT0vkSVu4UpJRfrocMVeD02r9FP6w+WzOT2WIars/BJH1xvIM0x9MutOF6utFbqwi9YFQ+CA=="),
+				Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
+				Signature:        tmtesting.B64Dec("dXO4Y8p5cKwubGLT0vkSVu4UpJRfrocMVeD02r9FP6w+WzOT2WIars/BJH1xvIM0x9MutOF6utFbqwi9YFQ+CA=="),
 			},
 			{
 				BlockIDFlag:      tendermint.BlockIDFlagCommit,
 				ValidatorAddress: valset.Validators[0].Address,
-				Timestamp:        testing.ToTime("2025-09-25T07:55:57.306746166Z"),
-				Signature:        testing.B64Dec("TwSjd4gWQExpna4o7WmfgjuhVr3gWD14dcxEez7kxt9Fd3eUChDOj/lGFNkllLJvX3lcSuHtsRK2KPsIfRaKBQ=="),
+				Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
+				Signature:        tmtesting.B64Dec("TwSjd4gWQExpna4o7WmfgjuhVr3gWD14dcxEez7kxt9Fd3eUChDOj/lGFNkllLJvX3lcSuHtsRK2KPsIfRaKBQ=="),
 			},
 		}
 

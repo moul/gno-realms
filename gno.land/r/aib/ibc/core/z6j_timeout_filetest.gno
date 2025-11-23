@@ -55,26 +55,28 @@ func main() {
 	ctx.Time = time.Now().Add(12 * time.Minute)
 	testing.SetContext(ctx)
 	// Update client with the a block created after the timeout
-	// NOTE: signature generated thanks to github.com/tbruyelle/sdktools/mproto
 	apphash = tmtesting.GenHash("apphash-5")
 	var (
-		newHeight     = trustedHeight.RevisionHeight + 10
-		newTimestamp  = consensusState.Timestamp.Add(12 * time.Minute)
-		blockhash     = tmtesting.B64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
-		parsethash    = tmtesting.B64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
-		consensushash = tmtesting.B64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
-		trustedValset = tendermint.NewValset(val1, val2)
-		signatures    = []tendermint.CommitSig{
+		newHeight       = trustedHeight.RevisionHeight + 10
+		newTimestamp    = consensusState.Timestamp.Add(12 * time.Minute)
+		blockhash       = tmtesting.B64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
+		parsethash      = tmtesting.B64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
+		consensushash   = tmtesting.B64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
+		trustedValset   = tendermint.NewValset(val1, val2)
+		commitTimestamp = tmtesting.ToTime("2025-09-25T07:55:57.306746166Z")
+		// NOTE: signatures generated thanks to:
+		// go run ./cmd/gen-block-signatures -privkeys=8a6cAbQSpDbebmcTEhCMPhhr/SkL/2pizo60yzHRkN9Uyk7RHOZm7g4xW+yeJh147/Z4/6HXF6gBwcFNkLsZ/A==,nWg6ETc62tyxd94lh8fFaQnZKaAW6vlS0L/4lfseJuI14ZXUKp7AZROkflLFVF+SBg4wJVfzgzIKyWq3D066+g==
+		signatures = []tendermint.CommitSig{
 			{
 				BlockIDFlag:      tendermint.BlockIDFlagCommit,
 				ValidatorAddress: valset.Validators[0].Address,
-				Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
+				Timestamp:        commitTimestamp,
 				Signature:        tmtesting.B64Dec("p2bXgxs9MZU0HLNm2iNUYSo+Oo7fWlVgT8W3LqlrgPCM6kvGYx1v54fRjTPeSb6GXd0DCjR0/gm/A8jwu05TCQ=="),
 			},
 			{
 				BlockIDFlag:      tendermint.BlockIDFlagCommit,
 				ValidatorAddress: valset.Validators[1].Address,
-				Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
+				Timestamp:        commitTimestamp,
 				Signature:        tmtesting.B64Dec("zkQ5PauBXFhnCV4QaJmW/IY3XWFzURXJYAnv4iAez652Gg/h09iLuabD2S7baFkALpgK1Kt2MoSQY2CRkMumDg=="),
 			},
 		}
