@@ -1,0 +1,132 @@
+package main
+
+import (
+	"fmt"
+	"html/template"
+	"os"
+
+	ics23 "github.com/cosmos/ics23/go"
+
+	dbm "github.com/cosmos/cosmos-db"
+
+	channelv2types "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+)
+
+func main() {
+	db := dbm.NewMemDB()
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	iavlStoreKey := storetypes.NewKVStoreKey("iavlStoreKey")
+
+	store.MountStoreWithDB(iavlStoreKey, storetypes.StoreTypeIAVL, nil)
+	err := store.LoadVersion(0)
+	if err != nil {
+		panic(err)
+	}
+	iavlStore := store.GetCommitStore(iavlStoreKey).(*iavl.Store)
+	// fill with fake data
+	for _, ikey := range []byte{0x11, 0x32, 0x50, 0x72, 0x99} {
+		key := []byte{ikey}
+		iavlStore.Set(key, key)
+	}
+	// Enter the key we want to proof
+	key := []byte("prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01")
+	value := channelv2types.CommitAcknowledgement(
+		channelv2types.Acknowledgement{
+			AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"BQ=="}}`)},
+		},
+	)
+	iavlStore.Set(key, value)
+
+	cid := store.Commit()
+
+	// Get Proof
+	res, err := store.Query(&storetypes.RequestQuery{
+		Path:  "/iavlStoreKey/key",
+		Data:  key,
+		Prove: true,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// Decode ics23 proof
+	proofs := make([]*ics23.CommitmentProof, len(res.ProofOps.Ops))
+	// spew.Dump(reqres.Response.ProofOps.Ops)
+	for i, op := range res.ProofOps.Ops {
+		var p ics23.CommitmentProof
+		err = p.Unmarshal(op.Data)
+		if err != nil || p.Proof == nil {
+			panic(fmt.Sprintf("could not unmarshal proof op into CommitmentProof at index %d: %v", i, err))
+		}
+		proofs[i] = &p
+	}
+
+	// Verify proof.
+	prt := rootmulti.DefaultProofRuntime()
+	err = prt.VerifyValue(res.ProofOps, cid.Hash, "/iavlStoreKey/"+string(key), value)
+	if err != nil {
+		panic(err)
+	}
+
+	// Dump proof
+	tmpl := `
+apphash, _ := hex.DecodeString("{{hex .Root}}")
+specs := ics23.IavlSpec()
+proofAcked := []ics23.CommitmentProof{
+  {{range .Proofs}}
+  ics23.CommitmentProof_Exist{
+    Exist: &ics23.ExistenceProof{
+      Key:   []byte("{{str .GetExist.Key}}"),
+      Value: []byte("{{str .GetExist.Value}}"),
+      Leaf: &ics23.LeafOp{
+        Hash:         specs.LeafSpec.Hash,
+        PrehashKey:   specs.LeafSpec.PrehashKey,
+        PrehashValue: specs.LeafSpec.PrehashValue,
+        Length:       specs.LeafSpec.Length,
+        Prefix:       []byte("{{str .GetExist.Leaf.Prefix}}"),
+      },
+      Path: []*ics23.InnerOp{
+        {{range .GetExist.Path -}}
+        {
+          Hash:   specs.InnerSpec.Hash,
+          Prefix: []byte("{{str .Prefix}}"),
+          Suffix: []byte("{{str .Suffix}}"),
+        },
+        {{end -}}
+      },
+    },
+  },
+  {{end}}
+}
+`
+
+	t, err := template.New("").Funcs(template.FuncMap{
+		"hex": func(bz []byte) string {
+			return fmt.Sprintf("%x", bz)
+		},
+		"str": func(bz []byte) string {
+			hex := fmt.Sprintf("%x", bz)
+			var formatted string
+			for i := 0; i < len(hex); i += 2 {
+				formatted += "\\x" + hex[i:i+2]
+			}
+			return formatted
+		},
+	}).Parse(tmpl)
+	if err != nil {
+		panic(err)
+	}
+	err = t.Execute(os.Stdout, map[string]any{
+		"Root":   cid.Hash,
+		"Proofs": proofs,
+	})
+	if err != nil {
+		panic(err)
+	}
+}

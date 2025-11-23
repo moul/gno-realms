@@ -7,7 +7,6 @@ import (
 	"time"
 
 	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
-	ibctesting "gno.land/p/aib/ibc/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/aib/ics23"
 	appstesting "gno.land/r/aib/ibc/apps/testing"
@@ -50,6 +49,56 @@ func main() {
 	sequence := core.SendPacket(cross, banker, sendPacket)
 
 	// Acknowledge the packet
+	specs := ics23.IavlSpec()
+	// NOTE proof generated thanks to ./cmd/gen-proof
+	proofAcked := []ics23.CommitmentProof{
+
+		ics23.CommitmentProof_Exist{
+			Exist: &ics23.ExistenceProof{
+				Key:   []byte("\x70\x72\x65\x66\x69\x78\x32\x30\x37\x2d\x74\x65\x6e\x64\x65\x72\x6d\x69\x6e\x74\x2d\x34\x32\x03\x00\x00\x00\x00\x00\x00\x00\x01"),
+				Value: []byte("\x21\x29\x3f\x61\xea\x42\x91\xdc\x31\x88\xaa\x8b\xe6\xde\x66\xeb\x0e\xe0\x5b\x10\x03\x25\xb0\x31\x3b\x25\x84\xf2\xc0\x96\x11\xaf"),
+				Leaf: &ics23.LeafOp{
+					Hash:         specs.LeafSpec.Hash,
+					PrehashKey:   specs.LeafSpec.PrehashKey,
+					PrehashValue: specs.LeafSpec.PrehashValue,
+					Length:       specs.LeafSpec.Length,
+					Prefix:       []byte("\x00\x02\x02"),
+				},
+				Path: []*ics23.InnerOp{
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x02\x04\x02\x20\x35\xf8\xea\x80\x53\x90\xe0\x84\x85\x4f\x39\x9b\x42\xcc\xde\xae\xa3\x3a\x1d\xed\xc1\x15\x63\x8a\xc4\x8d\x06\x00\x63\x7d\xba\x1f\x20"),
+						Suffix: []byte(""),
+					},
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x04\x08\x02\x20"),
+						Suffix: []byte("\x20\x79\x8e\x2c\xaa\x96\xfd\xfb\xa3\x76\xdd\xeb\x47\x99\x99\x54\xd2\xf4\x7e\x65\x16\x22\x64\xb0\x53\x6a\xb5\xdf\xf7\xfc\x0a\x2e\x07"),
+					},
+					{
+						Hash:   specs.InnerSpec.Hash,
+						Prefix: []byte("\x06\x0c\x02\x20\x9a\xf3\x7d\xd5\x95\xa0\x19\x08\x03\xb5\xe0\x5a\xae\xf4\x2a\xe3\xfa\xd4\x99\xe4\xfb\xe3\x7f\x7c\xd3\x1c\xad\xff\x22\xa9\xee\x74\x20"),
+						Suffix: []byte(""),
+					},
+				},
+			},
+		},
+
+		ics23.CommitmentProof_Exist{
+			Exist: &ics23.ExistenceProof{
+				Key:   []byte("\x69\x61\x76\x6c\x53\x74\x6f\x72\x65\x4b\x65\x79"),
+				Value: []byte("\x54\x67\x6b\x16\xcf\xa5\x41\x3e\x30\x2b\x0d\xff\x76\x7d\x1d\xa8\x11\x44\x0b\x38\x36\x08\xc7\xd8\xab\x6a\x1b\x36\x47\x82\x1f\x1d"),
+				Leaf: &ics23.LeafOp{
+					Hash:         specs.LeafSpec.Hash,
+					PrehashKey:   specs.LeafSpec.PrehashKey,
+					PrehashValue: specs.LeafSpec.PrehashValue,
+					Length:       specs.LeafSpec.Length,
+					Prefix:       []byte("\x00"),
+				},
+				Path: []*ics23.InnerOp{},
+			},
+		},
+	}
 	ackPacket := types.MsgAcknowledgement{
 		Packet: types.Packet{
 			Sequence:          sequence,
@@ -61,43 +110,7 @@ func main() {
 		Acknowledgement: types.Acknowledgement{
 			AppAcknowledgements: [][]byte{[]byte(`{"response":{"result":"BQ=="}}`)},
 		},
-		// Write the proof of acknowledgement written during the RecvPacket of the
-		// counterparty client.
-		// (generated from https://github.com/tbruyelle/sdktools/blob/31452ec4783bc45db1f84fe43fde93033e6b5576/proof/proof.go#L56)
-		// ROOT a119217258843545bc79dd7df4c050c6c2a21b1de7c132dd065fd7463f743e2d
-		// KEY 7072656669783230372d74656e6465726d696e742d3432030000000000000001 "prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01"
-		// VAL 21293f61ea4291dc3188aa8be6de66eb0ee05b100325b0313b2584f2c09611af
-		// 0 LEAF PREFIX 000202
-		// 	0 OP PREFIX 0204022035f8ea805390e084854f399b42ccdeaea33a1dedc115638ac48d0600637dba1f20
-		// 	0 OP SUFFIX
-		// 	1 OP PREFIX 04080220
-		// 	1 OP SUFFIX 20798e2caa96fdfba376ddeb47999954d2f47e65162264b0536ab5dff7fc0a2e07
-		// 	2 OP PREFIX 060c02209af37dd595a0190803b5e05aaef42ae3fad499e4fbe37f7cd31cadff22a9ee7420
-		// 	2 OP SUFFIX
-		// KEY 6961766c53746f72654b6579 "iavlStoreKey"
-		// VAL 54676b16cfa5413e302b0dff767d1da811440b383608c7d8ab6a1b3647821f1d
-		// 1 LEAF PREFIX 00
-		ProofAcked: []ics23.CommitmentProof{
-			ics23.CommitmentProof_Exist{
-				// iavl proof
-				Exist: ibctesting.NewExistenceProof(ics23.IavlSpec(),
-					[]byte("prefix207-tendermint-42\x03\x00\x00\x00\x00\x00\x00\x00\x01"),
-					"21293f61ea4291dc3188aa8be6de66eb0ee05b100325b0313b2584f2c09611af",
-					"000202",
-					[][]string{
-						{"0204022035f8ea805390e084854f399b42ccdeaea33a1dedc115638ac48d0600637dba1f20", ""},
-						{"04080220", "20798e2caa96fdfba376ddeb47999954d2f47e65162264b0536ab5dff7fc0a2e07"},
-						{"060c02209af37dd595a0190803b5e05aaef42ae3fad499e4fbe37f7cd31cadff22a9ee7420", ""},
-					},
-				),
-			},
-			ics23.CommitmentProof_Exist{
-				// rootmulti proof
-				Exist: ibctesting.NewExistenceProof(ics23.IavlSpec(),
-					[]byte("iavlStoreKey"), "54676b16cfa5413e302b0dff767d1da811440b383608c7d8ab6a1b3647821f1d",
-					"00", nil),
-			},
-		},
+		ProofAcked:  proofAcked,
 		ProofHeight: trustedHeight,
 	}
 
