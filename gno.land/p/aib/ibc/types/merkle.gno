@@ -1,5 +1,7 @@
 package types
 
+import "strings"
+
 // MerklePath is the path used to verify commitment proofs, which can be an
 // arbitrary structured object (defined by a commitment type).
 // ICS-23 verification supports membership proofs for nested merkle trees.
@@ -28,6 +30,14 @@ package types
 // used for final verification.
 type MerklePath struct {
 	KeyPath [][]byte
+}
+
+func (mp MerklePath) String() string {
+	var strs []string
+	for _, p := range mp.KeyPath {
+		strs = append(strs, string(p))
+	}
+	return "[" + strings.Join(strs, ", ") + "]"
 }
 
 // BuildMerklePath takes the merkle path prefix and an ICS24 path and builds a

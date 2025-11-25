@@ -31,7 +31,7 @@ func main() {
 		counterpartyID = "07-tendermint-42"
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
-	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, counterpartyID)
+	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
 	// Register app
 	var (
 		app       = appstesting.NewApp(cross)
@@ -197,4 +197,155 @@ func main() {
 }
 
 // Output:
-// xxx
+// res: (2 gno.land/p/aib/ibc/types.ResponseResultType)
+//
+// ----------- assert render clients/07-tendermint-1/packet_commitments
+// []
+//
+// ----------- app report
+// balance:
+// OnSendPacket (1)
+// - sourceClient: 07-tendermint-1
+// - destinationClient: 07-tendermint-42
+// - sequence: 1
+// - payload:
+//   - sourcePort: app
+//   - destinationPort: destinationPort
+//   - version: v1
+//   - encoding: application/json
+//   - value: {}
+//
+// OnRecvPacket (0)
+// OnTimeoutPacket (1)
+// - sourceClient: 07-tendermint-1
+// - destinationClient: 07-tendermint-42
+// - sequence: 1
+// - payload:
+//   - sourcePort: app
+//   - destinationPort: destinationPort
+//   - version: v1
+//   - encoding: application/json
+//   - value: {}
+//
+// OnAcknowledgementPacket (0)
+//
+// res: (1 gno.land/p/aib/ibc/types.ResponseResultType)
+//
+// ----------- app report
+// balance:
+// OnSendPacket (1)
+// - sourceClient: 07-tendermint-1
+// - destinationClient: 07-tendermint-42
+// - sequence: 1
+// - payload:
+//   - sourcePort: app
+//   - destinationPort: destinationPort
+//   - version: v1
+//   - encoding: application/json
+//   - value: {}
+//
+// OnRecvPacket (0)
+// OnTimeoutPacket (1)
+// - sourceClient: 07-tendermint-1
+// - destinationClient: 07-tendermint-42
+// - sequence: 1
+// - payload:
+//   - sourcePort: app
+//   - destinationPort: destinationPort
+//   - version: v1
+//   - encoding: application/json
+//   - value: {}
+//
+// OnAcknowledgementPacket (0)
+
+// Events:
+// [
+//   {
+//     "type": "create_client",
+//     "attrs": [
+//       {
+//         "key": "client_id",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "client_type",
+//         "value": "07-tendermint"
+//       },
+//       {
+//         "key": "consensus_heights",
+//         "value": "1/2"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   },
+//   {
+//     "type": "send_packet",
+//     "attrs": [
+//       {
+//         "key": "packet_source_client",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "packet_dest_client",
+//         "value": "07-tendermint-42"
+//       },
+//       {
+//         "key": "packet_sequence",
+//         "value": "1"
+//       },
+//       {
+//         "key": "packet_timeout_timestamp",
+//         "value": "1234568490"
+//       },
+//       {
+//         "key": "encoded_packet_hex",
+//         "value": "0801120f30372d74656e6465726d696e742d311a1030372d74656e6465726d696e742d343220aa8ad8cc042a300a03617070120f64657374696e6174696f6e506f72741a02763122106170706c69636174696f6e2f6a736f6e2a027b7d"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   },
+//   {
+//     "type": "update_client",
+//     "attrs": [
+//       {
+//         "key": "client_id",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "client_type",
+//         "value": "07-tendermint"
+//       },
+//       {
+//         "key": "consensus_heights",
+//         "value": "1/12"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   },
+//   {
+//     "type": "timeout_packet",
+//     "attrs": [
+//       {
+//         "key": "packet_source_client",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "packet_dest_client",
+//         "value": "07-tendermint-42"
+//       },
+//       {
+//         "key": "packet_sequence",
+//         "value": "1"
+//       },
+//       {
+//         "key": "packet_timeout_timestamp",
+//         "value": "1234568490"
+//       },
+//       {
+//         "key": "encoded_packet_hex",
+//         "value": "0801120f30372d74656e6465726d696e742d311a1030372d74656e6465726d696e742d343220aa8ad8cc042a300a03617070120f64657374696e6174696f6e506f72741a02763122106170706c69636174696f6e2f6a736f6e2a027b7d"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   }
+// ]

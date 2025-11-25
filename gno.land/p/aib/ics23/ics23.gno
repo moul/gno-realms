@@ -8,6 +8,7 @@ type CommitmentRoot []byte
 // proof is an ExistenceProof for the given key and value AND
 // calculating the root for the ExistenceProof matches the provided
 // CommitmentRoot.
+// TODO remove ?
 func VerifyMembership(spec *ProofSpec, root CommitmentRoot,
 	proof *CommitmentProof_Exist, key []byte, value []byte) bool {
 	if proof == nil {
@@ -24,6 +25,7 @@ func VerifyMembership(spec *ProofSpec, root CommitmentRoot,
 // both left and right sub-proofs are valid existence proofs (see above) or nil
 // left and right proofs are neighbors (or left/right most if one is nil)
 // provided key is between the keys of the two proofs
+// TODO remove ?
 func VerifyNonMembership(spec *ProofSpec, root CommitmentRoot,
 	proof *CommitmentProof_Nonexist, key []byte) bool {
 	if proof == nil {

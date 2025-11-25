@@ -89,6 +89,7 @@ func SendPacket(cur realm, banker banker.Banker, msg types.MsgSendPacket) (seque
 			cross, banker, msg.SourceClient, c.counterpartyClientID, sequence, payload,
 		)
 		if err != nil {
+			// TODO add payload index
 			panic(ufmt.Sprintf(
 				"send packet failed for app %s: %v", payload.SourcePort, err,
 			))
@@ -193,7 +194,8 @@ func Acknowledgement(cur realm, msg types.MsgAcknowledgement) types.ResponseResu
 		)
 		if err != nil {
 			panic(ufmt.Sprintf(
-				"acknowledgement packet failed for app %s: %v", payload.SourcePort, err,
+				"acknowledgement packet failed for app %s: %v",
+				payload.SourcePort, err,
 			))
 		}
 	}
@@ -267,7 +269,27 @@ func Timeout(cur realm, msg types.MsgTimeout) types.ResponseResultType {
 
 	c.deletePacketCommitment(msg.Packet.Sequence)
 
-	// TODO
+	chain.Emit(types.EventTypeTimeoutPacket,
+		types.AttributeKeySrcClient, msg.Packet.SourceClient,
+		types.AttributeKeyDstClient, msg.Packet.DestinationClient,
+		types.AttributeKeySequence, ufmt.Sprintf("%d", msg.Packet.Sequence),
+		types.AttributeKeyTimeoutTimestamp, ufmt.Sprintf("%d", msg.Packet.TimeoutTimestamp),
+		types.AttributeKeyEncodedPacketHex, hex.EncodeToString(msg.Packet.ProtoMarshal()),
+	)
 
-	return types.RESPONSE_FAILURE
+	for i, payload := range msg.Packet.Payloads {
+		app := store.route(payload.SourcePort)
+		err := app.OnTimeoutPacket(
+			cross, msg.Packet.SourceClient, c.counterpartyClientID,
+			msg.Packet.Sequence, payload,
+		)
+		if err != nil {
+			panic(ufmt.Sprintf(
+				"timeout packet failed for payload #%d app %s: %v",
+				i, payload.SourcePort, err,
+			))
+		}
+	}
+
+	return types.RESPONSE_SUCCESS
 }
