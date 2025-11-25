@@ -6,7 +6,7 @@ import (
 
 // RegisterCounterparty w/o existing client
 func main() {
-	core.RegisterCounterparty(cross, "unknown-client", [][]byte{[]byte("prefix1"), []byte("prefix2")}, "07-tendermint-2")
+	core.RegisterCounterparty(cross, "unknown-client", [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
 }
 
 // Error:

@@ -24,7 +24,7 @@ func main() {
 		counterpartyID = "07-tendermint-42"
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
-	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, counterpartyID)
+	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
 	// Register app
 	var (
 		app       = appstesting.NewApp(cross)

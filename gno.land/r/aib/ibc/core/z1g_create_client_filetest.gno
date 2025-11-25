@@ -28,7 +28,7 @@ func main() {
 	stdtesting.SetContext(ctx)
 
 	// RegisterCounterparty on clientID
-	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, "07-tendermint-2")
+	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
 }
 
 // Error:

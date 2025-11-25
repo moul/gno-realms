@@ -21,7 +21,7 @@ func main() {
 		consensusState = tmtesting.GenConsensusState(time.Now(), apphash[:], valset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
-	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("prefix1"), []byte("prefix2")}, "07-tendermint-2")
+	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
 
 	payload := transfer.FungibleTokenPacketData{
 		Denom:    "ugnot",
