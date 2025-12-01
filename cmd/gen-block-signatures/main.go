@@ -22,7 +22,8 @@ func main() {
 	var (
 		chainID         = flag.String("chainid", "atomone-1", "")
 		height          = flag.Int64("height", 1, "height of the block")
-		privkeysStr     = flag.String("privkeys", "", "base64 encoded private key (sep by comma)")
+		privkeysStr     = flag.String("privkeys", "", "base64 encoded private key (sep by comma) of existing validators")
+		newVals         = flag.Int("new-validators", 0, "number of new validators to add to the valset")
 		apphashSeed     = flag.String("apphash-seed", "", "will be hashed to create the apphash")
 		apphashHex      = flag.String("apphash-hex", "", "hex encoded apphash")
 		headerTimeShift = flag.Int64("header-time-shift", 0, "number of minutes to add to the default gno time (2009-02-13) for the header timestamp")
@@ -34,7 +35,8 @@ func main() {
 			priv := ed25519.PrivKey(b64Dec(s))
 			privs = append(privs, priv)
 		}
-	} else {
+	}
+	for i := 0; i < *newVals; i++ {
 		priv := ed25519.GenPrivKey()
 		privs = append(privs, priv)
 	}
@@ -56,7 +58,7 @@ func genSignaturesCode(privs []ed25519.PrivKey, chainID, apphashSeed, apphashHex
 	// create vals from privs
 	var vals []*types.Validator
 	for _, priv := range privs {
-		vals = append(vals, types.NewValidator(priv.PubKey(), 1))
+		vals = append(vals, types.NewValidator(priv.PubKey(), 10))
 	}
 	var (
 		valset          = types.ValidatorSet{Validators: vals}
@@ -120,13 +122,13 @@ func genSignaturesCode(privs []ed25519.PrivKey, chainID, apphashSeed, apphashHex
 		{{- end}}
 		{{range $i, $v := .Vals -}}
 		// priv={{b64 (index $.Privs $i)}}
-		val{{inc $i}} = tendermint.NewValidator("{{b64 $v.PubKey.Address}}", "{{b64 $v.PubKey}}", 1)
+		val{{inc $i}} = tendermint.NewValidator("{{b64 $v.PubKey.Address}}", "{{b64 $v.PubKey}}", {{$v.VotingPower}})
 		{{end -}}
 		valset = tendermint.NewValset({{range $i, $v := .Vals}}val{{inc $i}},{{end}})
 		commitTimestamp = tmtesting.ToTime("2025-09-25T07:55:57.306746166Z")
 		newHeight       = uint64({{.Height}})
 		newTimestamp    = consensusState.Timestamp.Add(time.Minute * time.Duration({{.HeaderTimeShift}}))
-		trustedValset   = tendermint.NewValset({{range $i, $v := .Vals}}val{{inc $i}},{{end}})
+		nextValset      = tendermint.NewValset({{range $i, $v := .Vals}}val{{inc $i}},{{end}})
 		trustedHeight   = clientState.LatestHeight
 	
 		signatures = []tendermint.CommitSig{
@@ -142,7 +144,7 @@ func genSignaturesCode(privs []ed25519.PrivKey, chainID, apphashSeed, apphashHex
 	
 		msgHeader = tmtesting.NewMsgHeader(
 			chainID, newTimestamp, apphash, newHeight, trustedHeight, valset,
-			trustedValset, signatures,
+			nextValset, trustedValset, signatures,
 		)
 	)
 	core.UpdateClient(cross, clientID, msgHeader)
