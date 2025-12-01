@@ -51,6 +51,7 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 	}
 
 	if !untrustedHeader.Time.After(trustedHeader.Time) {
+		// TODO write test
 		return ufmt.Errorf(
 			"expected new header time %v to be after old header time %v",
 			untrustedHeader.Time, trustedHeader.Time,
@@ -58,25 +59,28 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 	}
 
 	if !untrustedHeader.Time.Before(now.Add(tm.ClientState.MaxClockDrift)) {
+		// TODO write test
 		return ufmt.Errorf(
 			"new header has a time from the future %v (now: %v; max clock drift: %v)",
 			untrustedHeader.Time, now, tm.ClientState.MaxClockDrift,
 		)
 	}
-	// Check the validator hashes are the same
-	if !bytes.Equal(untrustedHeader.ValidatorsHash, trustedHeader.NextValidatorsHash) {
-		h1, h2 := hex.EncodeToString(trustedHeader.NextValidatorsHash), hex.EncodeToString(untrustedHeader.ValidatorsHash)
-		return ufmt.Errorf(
-			"expected old header next validators (%s) to match those from new header (%s)",
-			h1, h2,
-		)
-	}
 
 	if err := trustedHeader.Expired(tm.ClientState.TrustingPeriod); err != nil {
+		// TODO write test
 		return err
 	}
 
-	if untrustedHeader.Height != trustedHeader.Height+1 {
+	if untrustedHeader.Height == trustedHeader.Height+1 {
+		// Adjacent heights, check the validator hashes are the same
+		if !bytes.Equal(untrustedHeader.ValidatorsHash, trustedHeader.NextValidatorsHash) {
+			h1, h2 := hex.EncodeToString(trustedHeader.NextValidatorsHash), hex.EncodeToString(untrustedHeader.ValidatorsHash)
+			return ufmt.Errorf(
+				"expected old header next validators (%s) to match those from new header (%s)",
+				h1, h2,
+			)
+		}
+	} else {
 		// Heights aren't adjacent, this requires to check if at least trustlevel
 		// ([1/3, 1]) of trusted validators have signed correctly.
 		var (
@@ -86,7 +90,7 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 				int64(tl.Numerator) / int64(tl.Denominator)
 		)
 		if err := tm.verifyCommit(trustedValset, msg.Commit, votingPowerNeeded, true, false); err != nil {
-			return err
+			return ufmt.Errorf("check trusted validators VP>%d: %v", votingPowerNeeded, err)
 		}
 	}
 	// Ensure that +2/3 of untrustedValset signed correctly.
@@ -94,7 +98,11 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 	// NOTE: this should always be the last check because untrustedValset can be
 	// intentionally made very large to DOS the light client.
 	votingPowerNeeded := untrustedValset.TotalVotingPower * 2 / 3
-	return tm.verifyCommit(untrustedValset, msg.Commit, votingPowerNeeded, false, true)
+	err := tm.verifyCommit(untrustedValset, msg.Commit, votingPowerNeeded, false, true)
+	if err != nil {
+		return ufmt.Errorf("check untrusted validators VP>%d: %v", votingPowerNeeded, err)
+	}
+	return nil
 }
 
 func (tm TMLightClient) verifyMisbehavior(msg *Misbehaviour) error {

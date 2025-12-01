@@ -67,4 +67,4 @@ func main() {
 }
 
 // Error:
-// not enough voting power, got 1, needed >1
+// check untrusted validators VP>1: not enough voting power, got 1, needed >1
