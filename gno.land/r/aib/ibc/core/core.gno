@@ -101,8 +101,9 @@ func SendPacket(cur realm, banker banker.Banker, msg types.MsgSendPacket) (seque
 
 func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 	// TODO
+	panic("not implemented")
 	// TODO check if relayer address is in whitelist
-	return types.RESPONSE_FAILURE
+	// return types.RESPONSE_FAILURE
 }
 
 func Acknowledgement(cur realm, msg types.MsgAcknowledgement) types.ResponseResultType {

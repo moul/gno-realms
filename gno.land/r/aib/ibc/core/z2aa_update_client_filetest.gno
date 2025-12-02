@@ -10,8 +10,6 @@ import (
 )
 
 // UpdateClient success with non-adjacent height
-// TODO add test where trustedVals VP<=1/3 (fail)
-// TODO add test where vals <=2/3 (fail) (similar to z2m but for non-adjacent height)
 func main() {
 	// CreateClient and RegisterCounterparty
 	var (

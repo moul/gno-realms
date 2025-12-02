@@ -88,7 +88,6 @@ func GenValset() *tendermint.ValidatorSet {
 	return tendermint.NewValset(val1, val2)
 }
 
-// TODO move to tendermint pkg?
 func GenConsensusState(timestamp time.Time, apphash, valsethash []byte) tendermint.ConsensusState {
 	return tendermint.ConsensusState{
 		Timestamp:          timestamp,
@@ -97,7 +96,6 @@ func GenConsensusState(timestamp time.Time, apphash, valsethash []byte) tendermi
 	}
 }
 
-// TODO rename to GenSignature and update
 func GenMsgHeader(chainID string, timestamp time.Time, apphash []byte,
 	height uint64, trustedHeight types.Height,
 	valset, nextValset, trustedValset *tendermint.ValidatorSet) *tendermint.MsgHeader {

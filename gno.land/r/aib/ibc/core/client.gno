@@ -123,10 +123,12 @@ func UpdateClient(cur realm, clientID string, clientMessage lightclient.ClientMe
 // was committed to by the old client at the specified upgrade height.
 func UpgradeClient(cur realm, clientID string, clientState, consensusState, proofUpgradeClient, proofUpgradeConsensusState any) {
 	// TODO
+	panic("not implemented")
 }
 
 // RecoverClient recovers a frozen or expired client.
 // NOTE(tb): This must be a permissioned function called by a gov proposal.
 func RecoverClient(cur realm, clientID string) {
 	// TODO
+	panic("not implemented")
 }

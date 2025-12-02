@@ -81,8 +81,7 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 		// Heights aren't adjacent, this requires to check if at least trustlevel
 		// ([1/3, 1]) of trusted validators have signed correctly.
 		var (
-			tl = tm.ClientState.TrustLevel
-			// TODO recompute total voting power ? how to ensure it is correct ?
+			tl                = tm.ClientState.TrustLevel
 			votingPowerNeeded = trustedValset.TotalVotingPower *
 				int64(tl.Numerator) / int64(tl.Denominator)
 		)
@@ -103,7 +102,8 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 }
 
 func (tm TMLightClient) verifyMisbehavior(msg *Misbehaviour) error {
-	panic("TODO verifyMisbehavior unimplemented")
+	// TODO
+	panic("not implemented")
 }
 
 // checkTrustedHeader checks that consensus state matches trusted fields of Header
