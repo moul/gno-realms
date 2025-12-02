@@ -65,7 +65,6 @@ func (tm *TMLightClient) verifyHeader(msg *MsgHeader) error {
 	}
 
 	if err := trustedHeader.Expired(tm.ClientState.TrustingPeriod); err != nil {
-		// TODO write test
 		return err
 	}
 
