@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
 	"errors"
 	"time"
 
@@ -16,9 +15,9 @@ func main() {
 	var (
 		chainID        = "chain-id-2"
 		clientState    = tmtesting.NewClientState(chainID, types.NewHeight(2, 2))
-		apphash        = sha256.Sum256([]byte("apphash"))
-		valset         = tmtesting.GenValset()
-		consensusState = tmtesting.GenConsensusState(time.Now(), apphash[:], valset.Hash())
+		apphash        = tmtesting.Hash("apphash")
+		trustedValset  = tmtesting.GenValset()
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
 	"testing"
 	"time"
 
@@ -18,9 +17,9 @@ func main() {
 		chainID        = "chain-id-2"
 		trustedHeight  = types.NewHeight(2, 2)
 		clientState    = tmtesting.NewClientState(chainID, trustedHeight)
-		apphash        = sha256.Sum256([]byte("apphash"))
-		valset         = tmtesting.GenValset()
-		consensusState = tmtesting.GenConsensusState(time.Now(), apphash[:], valset.Hash())
+		apphash        = tmtesting.Hash("apphash")
+		trustedValset  = tmtesting.GenValset()
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 		counterpartyID = "07-tendermint-42"
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)

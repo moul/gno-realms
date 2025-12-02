@@ -1,11 +1,10 @@
 package main
 
 import (
-	"crypto/sha256"
-	stdtesting "testing"
+	"testing"
 	"time"
 
-	"gno.land/p/aib/ibc/lightclient/tendermint/testing"
+	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/r/aib/ibc/core"
 )
@@ -14,18 +13,18 @@ import (
 func main() {
 	var (
 		chainID        = "chain-id-2"
-		clientState    = testing.NewClientState(chainID, types.NewHeight(2, 2))
-		apphash        = sha256.Sum256([]byte("apphash"))
-		valset         = testing.GenValset()
-		consensusState = testing.GenConsensusState(time.Now(), apphash[:], valset.Hash())
+		clientState    = tmtesting.NewClientState(chainID, types.NewHeight(2, 2))
+		apphash        = tmtesting.Hash("apphash")
+		trustedValset  = tmtesting.GenValset()
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
 
 	// Change block time to expire the lightclient
-	ctx := stdtesting.GetContext()
+	ctx := testing.GetContext()
 	ctx.Time = time.Now().Add(clientState.TrustingPeriod)
-	stdtesting.SetContext(ctx)
+	testing.SetContext(ctx)
 
 	packet := types.MsgSendPacket{
 		SourceClient:     clientID,

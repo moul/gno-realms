@@ -25,8 +25,8 @@ func main() {
 		// priv=nWg6ETc62tyxd94lh8fFaQnZKaAW6vlS0L/4lfseJuI14ZXUKp7AZROkflLFVF+SBg4wJVfzgzIKyWq3D066+g==
 		val2 = tendermint.NewValidator("y+naL3ubs9q1bXrY9+uRxY9c+J8=",
 			"NeGV1CqewGUTpH5SxVRfkgYOMCVX84MyCslqtw9Ouvo=", 1)
-		valset         = tendermint.NewValset(val1, val2)
-		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, valset.Hash())
+		trustedValset  = tendermint.NewValset(val1, val2)
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
@@ -40,6 +40,7 @@ func main() {
 			apphash         = tmtesting.Hash("apphash-3")
 			commitTimestamp = tmtesting.ToTime("2025-09-25T07:55:57.306746166Z")
 			newTimestamp    = consensusState.Timestamp.Add(time.Minute * time.Duration(1))
+			valset          = tendermint.NewValset(val1, val2)
 			nextValset      = tendermint.NewValset(val1, val2)
 			trustedHeight   = clientState.LatestHeight
 
@@ -60,7 +61,7 @@ func main() {
 
 			msgHeader = tmtesting.NewMsgHeader(
 				chainID, newTimestamp, apphash, newHeight, trustedHeight, valset,
-				nextValset, valset, signatures,
+				nextValset, trustedValset, signatures,
 			)
 		)
 		core.UpdateClient(cross, clientID, msgHeader)

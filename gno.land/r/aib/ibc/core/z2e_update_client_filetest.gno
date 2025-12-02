@@ -16,8 +16,8 @@ func main() {
 		chainID        = "chain-id-2"
 		clientState    = tmtesting.NewClientState(chainID, types.NewHeight(2, 2))
 		apphash        = tmtesting.Hash("apphash")
-		valset         = tmtesting.GenValset()
-		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, valset.Hash())
+		trustedValset  = tmtesting.GenValset()
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
@@ -33,7 +33,7 @@ func main() {
 		newTimestamp  = consensusState.Timestamp.Add(time.Minute)
 		trustedHeight = clientState.LatestHeight
 		msgHeader     = tmtesting.GenMsgHeader(
-			chainID, newTimestamp, apphash, newHeight, trustedHeight, valset, valset, valset,
+			chainID, newTimestamp, apphash, newHeight, trustedHeight, trustedValset, trustedValset, trustedValset,
 		)
 	)
 

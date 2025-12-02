@@ -1,11 +1,10 @@
 package main
 
 import (
-	"crypto/sha256"
-	stdtesting "testing"
+	"testing"
 	"time"
 
-	"gno.land/p/aib/ibc/lightclient/tendermint/testing"
+	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/r/aib/ibc/core"
 )
@@ -14,18 +13,18 @@ import (
 func main() {
 	var (
 		chainID        = "chain-id-2"
-		clientState    = testing.NewClientState(chainID, types.NewHeight(2, 2))
-		apphash        = sha256.Sum256([]byte("apphash"))
-		valset         = testing.GenValset()
-		consensusState = testing.GenConsensusState(time.Now(), apphash[:], valset.Hash())
+		clientState    = tmtesting.NewClientState(chainID, types.NewHeight(2, 2))
+		apphash        = tmtesting.Hash("apphash")
+		trustedValset  = tmtesting.GenValset()
+		consensusState = tmtesting.GenConsensusState(time.Now(), apphash, trustedValset.Hash())
 	)
 
 	clientID := core.CreateClient(cross, clientState, consensusState)
 
 	// Change OriginCaller for the call to RegisterCounterparty
-	ctx := stdtesting.GetContext()
+	ctx := testing.GetContext()
 	ctx.OriginCaller = "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsx"
-	stdtesting.SetContext(ctx)
+	testing.SetContext(ctx)
 
 	// RegisterCounterparty on clientID
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, "07-tendermint-2")
