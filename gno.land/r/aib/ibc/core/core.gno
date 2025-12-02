@@ -100,9 +100,35 @@ func SendPacket(cur realm, banker banker.Banker, msg types.MsgSendPacket) (seque
 }
 
 func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
-	// TODO
-	panic("not implemented")
+	if err := msg.ValidateBasic(); err != nil {
+		panic(err)
+	}
 	// TODO check if relayer address is in whitelist
+
+	clientID := msg.Packet.DestinationClient
+	c := store.getClient(clientID)
+	if c == nil {
+		panic(ufmt.Sprintf("client %s not found", clientID))
+	}
+	// check client is active
+	if status := c.lightClient.Status(); status != lightclient.Active {
+		panic(ufmt.Sprintf("client (%s) status is %s", clientID, status))
+	}
+	// check counterparty
+	if c.counterpartyClientID != msg.Packet.SourceClient {
+		panic(ufmt.Sprintf(
+			"counterparty id (%s) does not match packet source id (%s)",
+			c.counterpartyClientID, msg.Packet.SourceClient,
+		))
+	}
+	currentTimestamp := uint64(time.Now().Unix())
+	if currentTimestamp >= msg.Packet.TimeoutTimestamp {
+		panic(ufmt.Sprintf(
+			"current timestamp: %d, timeout timestamp: %d",
+			currentTimestamp, msg.Packet.TimeoutTimestamp,
+		))
+	}
+	panic("not implemented")
 	// return types.RESPONSE_FAILURE
 }
 

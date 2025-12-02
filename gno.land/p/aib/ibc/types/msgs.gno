@@ -54,8 +54,16 @@ func (msg *MsgSendPacket) ValidateBasic() error {
 // MsgRecvPacket receives an incoming IBC packet.
 type MsgRecvPacket struct {
 	Packet          Packet
-	ProofCommitment []byte
+	ProofCommitment []ics23.CommitmentProof
 	ProofHeight     Height
+}
+
+// ValidateBasic performs basic checks on a MsgRecvPacket.
+func (msg *MsgRecvPacket) ValidateBasic() error {
+	if len(msg.ProofCommitment) == 0 {
+		return ufmt.Errorf("proof commitment can not be empty")
+	}
+	return msg.Packet.ValidateBasic()
 }
 
 // MsgAcknowledgement receives incoming IBC acknowledgement.
