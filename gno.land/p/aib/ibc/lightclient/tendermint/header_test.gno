@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"strings"
 	"testing"
@@ -11,7 +12,6 @@ import (
 
 	"gno.land/p/aib/ibc/lightclient"
 	"gno.land/p/aib/ibc/lightclient/tendermint"
-	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/nt/uassert"
 )
@@ -245,9 +245,9 @@ func TestMsgHeaderValidateBasic(t *testing.T) {
 		{
 			name: "commit.blockid.hash != header.hash()",
 			malleate: func() {
-				msg.Commit.BlockID.Hash = tmtesting.Hash("")
+				msg.Commit.BlockID.Hash = hash("")
 			},
-			expectedError: `expected BlockID#Hash and Header#Hash to be the same, got "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" != "4f633a8766a596303f9139cd4706eb03484be5f5521b724c57b7021fb6889e1d"`,
+			expectedError: `expected BlockID#Hash and Header#Hash to be the same, got "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" != "f3a08e784692b2a7a1dfe097378c1f2338f80159fc3ff3b17da238f0813db51e`,
 		},
 	}
 
@@ -261,46 +261,46 @@ func TestMsgHeaderValidateBasic(t *testing.T) {
 				newHeight    = uint64(3)
 				newTimestamp = time.Now()
 				val1         = &tendermint.Validator{
-					Address:     tmtesting.GenAddr("val1"),
-					PubKey:      tmtesting.GenPubkey("val1_pubkey"),
+					Address:     genAddr("val1"),
+					PubKey:      genPubkey("val1_pubkey"),
 					VotingPower: 2,
 				}
 				val2 = &tendermint.Validator{
-					Address:     tmtesting.GenAddr("val2"),
-					PubKey:      tmtesting.GenPubkey("val2_pubkey"),
+					Address:     genAddr("val2"),
+					PubKey:      genPubkey("val2_pubkey"),
 					VotingPower: 3,
 				}
 				valset      = tendermint.NewValset(val1, val2)
 				trustedval1 = &tendermint.Validator{
-					Address:     tmtesting.GenAddr("val1"),
-					PubKey:      tmtesting.GenPubkey("val1_pubkey"),
+					Address:     genAddr("val1"),
+					PubKey:      genPubkey("val1_pubkey"),
 					VotingPower: 2,
 				}
 				trustedval2 = &tendermint.Validator{
-					Address:     tmtesting.GenAddr("val2"),
-					PubKey:      tmtesting.GenPubkey("val2_pubkey"),
+					Address:     genAddr("val2"),
+					PubKey:      genPubkey("val2_pubkey"),
 					VotingPower: 3,
 				}
 				nextValset    = tendermint.NewValset(trustedval1, trustedval2)
 				trustedValset = tendermint.NewValset(trustedval1, trustedval2)
 				trustedHeight = types.NewHeight(0, 1)
-				apphash       = tmtesting.Hash("apphash")
+				apphash       = hash("apphash")
 				signatures    = []tendermint.CommitSig{
 					{
 						BlockIDFlag:      tendermint.BlockIDFlagCommit,
 						ValidatorAddress: valset.Validators[0].Address,
-						Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
-						Signature:        tmtesting.B64Dec("qtv1z4S2Q6T87vGQo0lrjRZqv9PrHIji4pTyviMnVyGx9td6eySdzwQwCthwmihU48ebNlFiMlFJ0CT891UmDg=="),
+						Timestamp:        toTime("2025-09-25T07:55:57.306746166Z"),
+						Signature:        b64Dec("qtv1z4S2Q6T87vGQo0lrjRZqv9PrHIji4pTyviMnVyGx9td6eySdzwQwCthwmihU48ebNlFiMlFJ0CT891UmDg=="),
 					},
 					{
 						BlockIDFlag:      tendermint.BlockIDFlagCommit,
 						ValidatorAddress: valset.Validators[1].Address,
-						Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.310583641Z"),
-						Signature:        tmtesting.B64Dec("Q5E6Kjma00n/T98rC9qJmoB6JTGFX/IB+mDVs4Wd1h0eJ8fabY/6oI8zdoU6/7W6VR6wjpHyWBsJrpGT6C0LCg=="),
+						Timestamp:        toTime("2025-09-25T07:55:57.310583641Z"),
+						Signature:        b64Dec("Q5E6Kjma00n/T98rC9qJmoB6JTGFX/IB+mDVs4Wd1h0eJ8fabY/6oI8zdoU6/7W6VR6wjpHyWBsJrpGT6C0LCg=="),
 					},
 				}
 			)
-			msg = tmtesting.NewMsgHeader(
+			msg = newMsgHeader(
 				chainID, newTimestamp, apphash, newHeight, trustedHeight, valset,
 				nextValset, trustedValset, signatures,
 			)
@@ -328,7 +328,7 @@ func TestHeaderHash(t *testing.T) {
 		expectedHash string // hex encoded
 	}{
 		{
-			desc: "Generates expected hash",
+			desc: "generates expected hash",
 			header: &tendermint.Header{
 				Version: tendermint.Consensus{Block: 1, App: 2},
 				ChainID: "chainId",
@@ -341,15 +341,15 @@ func TestHeaderHash(t *testing.T) {
 						Hash:  make([]byte, sha256.Size),
 					},
 				},
-				LastCommitHash:     tmtesting.Hash("last_commit_hash"),
-				DataHash:           tmtesting.Hash("data_hash"),
-				ValidatorsHash:     tmtesting.Hash("validators_hash"),
-				NextValidatorsHash: tmtesting.Hash("next_validators_hash"),
-				ConsensusHash:      tmtesting.Hash("consensus_hash"),
-				AppHash:            tmtesting.Hash("app_hash"),
-				LastResultsHash:    tmtesting.Hash("last_results_hash"),
-				EvidenceHash:       tmtesting.Hash("evidence_hash"),
-				ProposerAddress:    tmtesting.GenAddr("proposer_address"),
+				LastCommitHash:     hash("last_commit_hash"),
+				DataHash:           hash("data_hash"),
+				ValidatorsHash:     hash("validators_hash"),
+				NextValidatorsHash: hash("next_validators_hash"),
+				ConsensusHash:      hash("consensus_hash"),
+				AppHash:            hash("app_hash"),
+				LastResultsHash:    hash("last_results_hash"),
+				EvidenceHash:       hash("evidence_hash"),
+				ProposerAddress:    genAddr("proposer_address"),
 			},
 			expectedHash: "f740121f553b5418c3efbd343c2dbfe9e007bb67b0d020a0741374bab65242a4",
 		},
@@ -372,15 +372,15 @@ func TestHeaderHash(t *testing.T) {
 						Hash:  make([]byte, sha256.Size),
 					},
 				},
-				LastCommitHash:     tmtesting.Hash("last_commit_hash"),
-				DataHash:           tmtesting.Hash("data_hash"),
+				LastCommitHash:     hash("last_commit_hash"),
+				DataHash:           hash("data_hash"),
 				ValidatorsHash:     nil,
-				NextValidatorsHash: tmtesting.Hash("next_validators_hash"),
-				ConsensusHash:      tmtesting.Hash("consensus_hash"),
-				AppHash:            tmtesting.Hash("app_hash"),
-				LastResultsHash:    tmtesting.Hash("last_results_hash"),
-				EvidenceHash:       tmtesting.Hash("evidence_hash"),
-				ProposerAddress:    tmtesting.GenAddr("proposer_address"),
+				NextValidatorsHash: hash("next_validators_hash"),
+				ConsensusHash:      hash("consensus_hash"),
+				AppHash:            hash("app_hash"),
+				LastResultsHash:    hash("last_results_hash"),
+				EvidenceHash:       hash("evidence_hash"),
+				ProposerAddress:    genAddr("proposer_address"),
 			},
 			expectedHash: "",
 		},
@@ -522,12 +522,12 @@ func TestCommitBytesToSign(t *testing.T) {
 			//  "signer": "atone14d0ka5jcuhf9v3n7qpdpmc9qhgsd6uae2g7jxy"
 			//}
 			chainID       = "osmosis-1"
-			timestamp     = tmtesting.ToTime("2025-09-25T07:55:56.299553312Z")
-			apphash       = tmtesting.B64Dec("DAHBO3lYaIFu9XmplThmF7ijXG7YwDZawGSDKKCHh7c=")
+			timestamp     = toTime("2025-09-25T07:55:56.299553312Z")
+			apphash       = b64Dec("DAHBO3lYaIFu9XmplThmF7ijXG7YwDZawGSDKKCHh7c=")
 			height        = uint64(44873552)
-			blockhash     = tmtesting.B64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
-			parsethash    = tmtesting.B64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
-			consensushash = tmtesting.B64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
+			blockhash     = b64Dec("NpiImIJoaSaIucwNs5cqpgMsL/8wxEPYC3P0jA5aQSI=")
+			parsethash    = b64Dec("QqzwnLzvixIcUz+hPeUQjDV6NaLkFRKXACCxJIrBHzw=")
+			consensushash = b64Dec("JIS7qLmeUx4aP2QiNi59PuuZqDJRGZaKNV8FwJ7t1As=")
 			val1          = tendermint.NewValidator(
 				"y1pjuR6PTujbk1lCy+JXJGNkeeA=", "6Nz09YGHzwWxjczG0IhK4Iv0qY2IcX0P/5KitvRXTUc=", 2,
 			)
@@ -540,14 +540,14 @@ func TestCommitBytesToSign(t *testing.T) {
 				{
 					BlockIDFlag:      tendermint.BlockIDFlagCommit,
 					ValidatorAddress: valset.Validators[0].Address,
-					Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.306746166Z"),
-					Signature:        tmtesting.B64Dec("qtv1z4S2Q6T87vGQo0lrjRZqv9PrHIji4pTyviMnVyGx9td6eySdzwQwCthwmihU48ebNlFiMlFJ0CT891UmDg=="),
+					Timestamp:        toTime("2025-09-25T07:55:57.306746166Z"),
+					Signature:        b64Dec("qtv1z4S2Q6T87vGQo0lrjRZqv9PrHIji4pTyviMnVyGx9td6eySdzwQwCthwmihU48ebNlFiMlFJ0CT891UmDg=="),
 				},
 				{
 					BlockIDFlag:      tendermint.BlockIDFlagCommit,
 					ValidatorAddress: valset.Validators[1].Address,
-					Timestamp:        tmtesting.ToTime("2025-09-25T07:55:57.310583641Z"),
-					Signature:        tmtesting.B64Dec("Q5E6Kjma00n/T98rC9qJmoB6JTGFX/IB+mDVs4Wd1h0eJ8fabY/6oI8zdoU6/7W6VR6wjpHyWBsJrpGT6C0LCg=="),
+					Timestamp:        toTime("2025-09-25T07:55:57.310583641Z"),
+					Signature:        b64Dec("Q5E6Kjma00n/T98rC9qJmoB6JTGFX/IB+mDVs4Wd1h0eJ8fabY/6oI8zdoU6/7W6VR6wjpHyWBsJrpGT6C0LCg=="),
 				},
 			}
 			header = &tendermint.Header{
@@ -565,14 +565,14 @@ func TestCommitBytesToSign(t *testing.T) {
 						Hash:  parsethash,
 					},
 				},
-				LastCommitHash:     tmtesting.Hash("last_commit_hash"),
-				DataHash:           tmtesting.Hash("data_hash"),
+				LastCommitHash:     hash("last_commit_hash"),
+				DataHash:           hash("data_hash"),
 				ValidatorsHash:     valset.Hash(),
 				NextValidatorsHash: nextValset.Hash(),
 				ConsensusHash:      consensushash,
 				AppHash:            apphash,
-				LastResultsHash:    tmtesting.Hash("last_result_hash"),
-				EvidenceHash:       tmtesting.Hash("evidence_hash"),
+				LastResultsHash:    hash("last_result_hash"),
+				EvidenceHash:       hash("evidence_hash"),
 				ProposerAddress:    valset.Proposer.Address,
 			}
 
@@ -754,12 +754,12 @@ func TestCommitBytesToSign(t *testing.T) {
 			//  "signer": "atone1z7p3628vmw8psjwwzlcak0xqvgyssmwpa3guqm"
 			//}
 			chainID       = "beezee-1"
-			timestamp     = tmtesting.ToTime("2025-09-25T14:00:43.469479971Z")
-			apphash       = tmtesting.B64Dec("XI9E+rmDbjwfn/EvQVp7CAqygaEI8Fingdh3xR+7aKw=")
+			timestamp     = toTime("2025-09-25T14:00:43.469479971Z")
+			apphash       = b64Dec("XI9E+rmDbjwfn/EvQVp7CAqygaEI8Fingdh3xR+7aKw=")
 			height        = uint64(19282029)
-			blockhash     = tmtesting.B64Dec("q82PBaLn4Vg3oLm0v670BOm1Ay+CR69DyBqNA/V//l4=")
-			parsethash    = tmtesting.B64Dec("PqBqLFCb6YhCQZFDnOeHzp1kHAbKs7fwHqOwnn8ha2s=")
-			consensushash = tmtesting.B64Dec("BOEs4QnQgrOaBfgH2qUBI3M1r0rPLx++gYSRGuYVAns=")
+			blockhash     = b64Dec("q82PBaLn4Vg3oLm0v670BOm1Ay+CR69DyBqNA/V//l4=")
+			parsethash    = b64Dec("PqBqLFCb6YhCQZFDnOeHzp1kHAbKs7fwHqOwnn8ha2s=")
+			consensushash = b64Dec("BOEs4QnQgrOaBfgH2qUBI3M1r0rPLx++gYSRGuYVAns=")
 			val1          = tendermint.NewValidator(
 				"h9mY0OvyfYUX7rMfkXO+9bpEWdo=", "wF3Daj7tqX8nVOJd2WCkMVvqyx/lPzuI5/y3wwSRwbY=", 2,
 			)
@@ -781,14 +781,14 @@ func TestCommitBytesToSign(t *testing.T) {
 				{
 					BlockIDFlag:      tendermint.BlockIDFlagCommit,
 					ValidatorAddress: valset.Validators[1].Address,
-					Timestamp:        tmtesting.ToTime("2025-09-25T14:00:49.373544902Z"),
-					Signature:        tmtesting.B64Dec("rgUFLD3Yk9JdcfWSqcscXeUZVY+Q7E1jQ1Eumkh/LT2fUI4dsk2NBeOhjyKaF5Ey/q6DwoINss6iSxNPj8s2Ag=="),
+					Timestamp:        toTime("2025-09-25T14:00:49.373544902Z"),
+					Signature:        b64Dec("rgUFLD3Yk9JdcfWSqcscXeUZVY+Q7E1jQ1Eumkh/LT2fUI4dsk2NBeOhjyKaF5Ey/q6DwoINss6iSxNPj8s2Ag=="),
 				},
 				{
 					BlockIDFlag:      tendermint.BlockIDFlagCommit,
 					ValidatorAddress: valset.Validators[2].Address,
-					Timestamp:        tmtesting.ToTime("2025-09-25T14:00:49.396076476Z"),
-					Signature:        tmtesting.B64Dec("thHpLNT6555JHoNr10iBpp8NJemRMPKMwnV4QDL6gLpaYChqrQND+8K4hQrC8Ld2IAuIT92ZHFWOmoVH9bIcBw=="),
+					Timestamp:        toTime("2025-09-25T14:00:49.396076476Z"),
+					Signature:        b64Dec("thHpLNT6555JHoNr10iBpp8NJemRMPKMwnV4QDL6gLpaYChqrQND+8K4hQrC8Ld2IAuIT92ZHFWOmoVH9bIcBw=="),
 				},
 			}
 			header = &tendermint.Header{
@@ -806,14 +806,14 @@ func TestCommitBytesToSign(t *testing.T) {
 						Hash:  parsethash,
 					},
 				},
-				LastCommitHash:     tmtesting.Hash("last_commit_hash"),
-				DataHash:           tmtesting.Hash("data_hash"),
+				LastCommitHash:     hash("last_commit_hash"),
+				DataHash:           hash("data_hash"),
 				ValidatorsHash:     valset.Hash(),
 				NextValidatorsHash: nextValset.Hash(),
 				ConsensusHash:      consensushash,
 				AppHash:            apphash,
-				LastResultsHash:    tmtesting.Hash("last_result_hash"),
-				EvidenceHash:       tmtesting.Hash("evidence_hash"),
+				LastResultsHash:    hash("last_result_hash"),
+				EvidenceHash:       hash("evidence_hash"),
 				ProposerAddress:    valset.Proposer.Address,
 			}
 
@@ -865,5 +865,88 @@ func testVotesBytesToSign(t *testing.T, msg *tendermint.MsgHeader, expectedBytes
 		if !v {
 			t.Errorf("failed to verify signature for validator index %d", idx)
 		}
+	}
+}
+
+func b64Dec(s string) []byte {
+	bz, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func toTime(s string) time.Time {
+	t, err := time.Parse(time.RFC3339Nano, s)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+func genAddr(seed string) []byte {
+	return hash(seed)[:tendermint.AddressSize]
+}
+
+func genSignature(seed string) []byte {
+	return hash(seed)[:tendermint.MaxSignatureSize]
+}
+
+func genPubkey(seed string) []byte {
+	return hash(seed)[:32]
+}
+
+func hash(s string) []byte {
+	h := sha256.Sum256([]byte(s))
+	return h[:]
+}
+
+func newMsgHeader(chainID string, timestamp time.Time,
+	apphash []byte, height uint64, trustedHeight types.Height,
+	valset, nextValset, trustedValset *tendermint.ValidatorSet,
+	signatures []tendermint.CommitSig) *tendermint.MsgHeader {
+	header := &tendermint.Header{
+		Version: tendermint.Consensus{
+			Block: tendermint.BlockProtocol,
+			App:   0,
+		},
+		ChainID: chainID,
+		Height:  height,
+		Time:    timestamp,
+		LastBlockID: tendermint.BlockID{
+			Hash: hash("last_block_hash"),
+			PartSetHeader: tendermint.PartSetHeader{
+				Total: 1,
+				Hash:  hash("last_block_parset_hash"),
+			},
+		},
+		LastCommitHash:     hash("last_commit_hash"),
+		DataHash:           hash("data_hash"),
+		ValidatorsHash:     valset.Hash(),
+		NextValidatorsHash: nextValset.Hash(),
+		ConsensusHash:      hash("consensus_hash"),
+		AppHash:            apphash,
+		LastResultsHash:    hash("last_result_hash"),
+		EvidenceHash:       hash("evidence_hash"),
+		ProposerAddress:    valset.Proposer.Address,
+	}
+
+	return &tendermint.MsgHeader{
+		Header: header,
+		Commit: &tendermint.Commit{
+			Height: height,
+			Round:  0,
+			BlockID: tendermint.BlockID{
+				Hash: header.Hash(), // compute expected block hash
+				PartSetHeader: tendermint.PartSetHeader{
+					Total: 1,
+					Hash:  hash("block_parset_hash"),
+				},
+			},
+			Signatures: signatures,
+		},
+		ValidatorSet:      valset,
+		TrustedHeight:     trustedHeight,
+		TrustedValidators: trustedValset,
 	}
 }
