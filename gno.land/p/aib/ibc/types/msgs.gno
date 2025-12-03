@@ -146,13 +146,9 @@ func (a *AppAcknowledgement) UnmarshalJSON(bz []byte) error {
 	if err != nil {
 		return err
 	}
-	resp, err := root.GetKey("response")
+	result, err := root.GetKey("result")
 	if err != nil {
-		return err
-	}
-	result, err := resp.GetKey("result")
-	if err != nil {
-		rerror, err := resp.GetKey("error")
+		rerror, err := root.GetKey("error")
 		if err != nil {
 			return err
 		}

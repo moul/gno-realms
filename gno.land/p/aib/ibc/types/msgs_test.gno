@@ -11,14 +11,14 @@ import (
 func TestAppAcknowledgementUnmarshalJSON(t *testing.T) {
 	var a types.AppAcknowledgement
 
-	err := a.UnmarshalJSON([]byte(`{"response":{"result":"aGVsbG8="}}`))
+	err := a.UnmarshalJSON([]byte(`{"result":"aGVsbG8="}`))
 
 	urequire.NoError(t, err)
 	urequire.True(t, bytes.Equal([]byte("hello"), a.Response.Result))
 	urequire.Equal(t, "", a.Response.Error)
 	urequire.True(t, a.Success())
 
-	err = a.UnmarshalJSON([]byte(`{"response":{"error":"oups"}}`))
+	err = a.UnmarshalJSON([]byte(`{"error":"oups"}`))
 
 	urequire.NoError(t, err)
 	urequire.Equal(t, 0, len(a.Response.Result))
