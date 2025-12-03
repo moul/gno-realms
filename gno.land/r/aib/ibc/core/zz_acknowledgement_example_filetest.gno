@@ -18,11 +18,11 @@ func main() {
 			DestinationClient: "counterPartyID",          // XXX update
 			TimeoutTimestamp:  uint64(time.Now().Unix()), // XXX update: must be the same as the timestamp of the send packet
 			Payloads: []types.Payload{{
-				SourcePort:      "appID",             // XXX update
-				DestinationPort: "counterPartyAppID", //XXX update
-				Encoding:        "application/json",
-				Value:           []byte("{}"), // XXX update
-				Version:         "v1",         // XXX update: version of app (transfer uses v1)
+				SourcePort:      "appID", // XXX update
+				DestinationPort: "appID", //XXX update
+				Encoding:        "application/x-protobuf",
+				Value:           []byte{}, // XXX update
+				Version:         "v1",     // XXX update: version of app (transfer uses v1)
 			}},
 		},
 		Acknowledgement: types.Acknowledgement{
