@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -22,37 +23,71 @@ import (
 )
 
 func main() {
+	/*
+		// helper to write the JSON packet
+			bz, _ := json.Marshal(channelv2types.Packet{
+				Sequence:          1,
+				SourceClient:      "07-tendermint-42",
+				DestinationClient: "07-tendermint-1",
+				TimeoutTimestamp:  1234571490,
+				Payloads: []channelv2types.Payload{{
+					SourcePort:      "appID",
+					DestinationPort: "appID",
+					Encoding:        "application/json",
+					Value:           []byte("{}"),
+					Version:         "v1",
+				}},
+			})
+			fmt.Println(string(bz))
+			fmt.Println(os.Args[4])
+			return
+	*/
+
 	flag.Parse()
 	if flag.NArg() < 3 || flag.NArg() > 4 {
-		fmt.Println("Usage: gen-proof MERKLE_PREFIX CLIENT_ID TYPE [APP_ACK]")
+		fmt.Println("Usage: gen-proof MERKLE_PREFIX CLIENT_ID COMMITMENT_TYPE [COMMITMENT]")
 		os.Exit(1)
 	}
 	var (
-		merklePrefix = flag.Arg(0)
-		clientID     = flag.Arg(1)
-		proofType    = flag.Arg(2)
-		appAckStr    = flag.Arg(3)
-		key          []byte
-		value        []byte
+		merklePrefix   = flag.Arg(0)
+		clientID       = flag.Arg(1)
+		commitmentType = flag.Arg(2)
+		commitment     = flag.Arg(3)
+		key            []byte
+		value          []byte
 	)
-	appAck := []byte(appAckStr)
-	// Try to decode appAck as hex
-	bz, err := hex.DecodeString(appAckStr)
-	if err == nil {
-		appAck = bz
-	}
-	switch proofType {
+	switch commitmentType {
 	case "acknowledgement":
+		// CONTRACT sequence=1
 		key = []byte(merklePrefix + clientID + "\x03\x00\x00\x00\x00\x00\x00\x00\x01")
-		if len(appAck) > 0 {
+		if commitment != "" {
+			// commitmentvalue holds the app acknowledgement. It can be arbitrary bytes
+			// or hex bytes.
+			appAck := []byte(commitment)
+			bz, err := hex.DecodeString(commitment)
+			if err == nil {
+				appAck = bz
+			}
 			value = channelv2types.CommitAcknowledgement(
 				channelv2types.Acknowledgement{
 					AppAcknowledgements: [][]byte{appAck},
 				},
 			)
 		}
+	case "packet":
+		// CONTRACT sequence=1
+		key = []byte(merklePrefix + clientID + "\x01\x00\x00\x00\x00\x00\x00\x00\x01")
+		// commitmentvalue holds the packet json serialized
+		if commitment != "" {
+			var packet channelv2types.Packet
+			err := json.Unmarshal([]byte(commitment), &packet)
+			if err != nil {
+				panic(err)
+			}
+			value = channelv2types.CommitPacket(packet)
+		}
 	default:
-		fmt.Println("unhandled proof type", proofType)
+		fmt.Println("unhandled proof type", commitmentType)
 		os.Exit(1)
 	}
 
