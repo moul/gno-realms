@@ -209,6 +209,14 @@ func b64Dec(s string) []byte {
 	return bz
 }
 
+func hexDec(s string) []byte {
+	bz, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
 func toTime(s string) time.Time {
 	t, err := time.Parse(time.RFC3339Nano, s)
 	if err != nil {
