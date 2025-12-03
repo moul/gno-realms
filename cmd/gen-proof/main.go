@@ -42,7 +42,7 @@ func main() {
 		appAck = bz
 	}
 	switch proofType {
-	case "commitment":
+	case "acknowledgement":
 		key = []byte(merklePrefix + clientID + "\x03\x00\x00\x00\x00\x00\x00\x00\x01")
 		if len(appAck) > 0 {
 			value = channelv2types.CommitAcknowledgement(
