@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gno.land/p/aib/ibc/types"
+	"gno.land/p/nt/ufmt"
 	"gno.land/p/nt/urequire"
 )
 
@@ -279,4 +280,9 @@ func TestPacketProtoMarshal(t *testing.T) {
 	if h := hex.EncodeToString(bz); h != expected {
 		t.Fatalf("expected %s got %s", expected, h)
 	}
+}
+
+func TestAcknowledgementProtoMarshal(t *testing.T) {
+	ack := types.Acknowledgement{AppAcknowledgements: [][]byte{{0x01, 0x02}, {0x03, 0x04}}}
+	ufmt.Printf("%q\n", string(ack.ProtoMarshal()))
 }

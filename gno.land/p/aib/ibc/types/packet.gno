@@ -240,3 +240,15 @@ func (ack Acknowledgement) Validate() error {
 func (ack Acknowledgement) Success() bool {
 	return !bytes.Equal(ack.AppAcknowledgements[0], UniversalErrorAcknowledgement())
 }
+
+// ProtoMarshal returns the protobuf encoding of a Acknowledgement.
+//
+//	message Acknowledgement {
+//	  repeated bytes app_acknowledgements = 1;
+//	}
+func (ack Acknowledgement) ProtoMarshal() (buf []byte) {
+	for _, appAck := range ack.AppAcknowledgements {
+		buf = append(buf, proto.AppendLengthDelimited(nil, 1, appAck)...)
+	}
+	return
+}

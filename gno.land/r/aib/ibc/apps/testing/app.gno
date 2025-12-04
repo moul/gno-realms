@@ -90,6 +90,10 @@ func (a *App) OnRecvPacket(
 	return a.Calls.OnRecvPacketReturn
 }
 
+func (a *App) SetOnRecvPacketReturn(res types.RecvPacketResult) {
+	a.Calls.OnRecvPacketReturn = res
+}
+
 // Implements app.IBCApp
 func (a *App) OnTimeoutPacket(
 	_ realm,

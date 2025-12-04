@@ -158,14 +158,6 @@ func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
 	c.setPacketReceipt(msg.Packet.Sequence)
 
-	var (
-		// build up the recv results for each application callback.
-		ack = types.Acknowledgement{
-			AppAcknowledgements: [][]byte{},
-		}
-		isSuccess = true
-	)
-
 	// Emit events
 	chain.Emit(types.EventTypeRecvPacket,
 		types.AttributeKeySrcClient, msg.Packet.SourceClient,
@@ -173,6 +165,14 @@ func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 		types.AttributeKeySequence, ufmt.Sprintf("%d", msg.Packet.Sequence),
 		types.AttributeKeyTimeoutTimestamp, ufmt.Sprintf("%d", msg.Packet.TimeoutTimestamp),
 		types.AttributeKeyEncodedPacketHex, hex.EncodeToString(msg.Packet.ProtoMarshal()),
+	)
+
+	var (
+		// build up the recv results for each application callback.
+		ack = types.Acknowledgement{
+			AppAcknowledgements: [][]byte{},
+		}
+		isSuccess = true
 	)
 
 	// Invoke registed app OnRecvPacket() for each payload.DestinationPort.
@@ -203,7 +203,6 @@ func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 
 		// append app acknowledgement to the overall acknowledgement
 		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
-
 	}
 
 	// Sanity check to ensure returned acknowledgement and calculated isSuccess
@@ -211,9 +210,21 @@ func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 	if ack.Success() != isSuccess {
 		panic("acknowledgement success does not match isSuccess")
 	}
+	if err := ack.Validate(); err != nil {
+		panic(err)
+	}
 	// set the acknowledgement so that it can be verified on the other side
-	c.setPacketAcknowledgement(msg.Packet.Sequence,
-		types.CommitAcknowledgement(ack))
+	c.setPacketAcknowledgement(msg.Packet.Sequence, types.CommitAcknowledgement(ack))
+
+	// Emit other events related to the ack
+	chain.Emit(types.EventTypeAcknowledgePacket,
+		types.AttributeKeySrcClient, msg.Packet.SourceClient,
+		types.AttributeKeyDstClient, msg.Packet.DestinationClient,
+		types.AttributeKeySequence, ufmt.Sprintf("%d", msg.Packet.Sequence),
+		types.AttributeKeyTimeoutTimestamp, ufmt.Sprintf("%d", msg.Packet.TimeoutTimestamp),
+		types.AttributeKeyEncodedPacketHex, hex.EncodeToString(msg.Packet.ProtoMarshal()),
+		types.AttributeKeyEncodedAckHex, hex.EncodeToString(ack.ProtoMarshal()),
+	)
 
 	return types.RESPONSE_SUCCESS
 }
