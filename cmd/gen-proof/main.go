@@ -61,7 +61,7 @@ func main() {
 		// CONTRACT sequence=1
 		key = []byte(merklePrefix + clientID + "\x03\x00\x00\x00\x00\x00\x00\x00\x01")
 		if commitment != "" {
-			// commitmentvalue holds the app acknowledgement. It can be arbitrary bytes
+			// commitment holds the app acknowledgement. It can be arbitrary bytes
 			// or hex bytes.
 			appAck := []byte(commitment)
 			bz, err := hex.DecodeString(commitment)
@@ -74,10 +74,17 @@ func main() {
 				},
 			)
 		}
+	case "receipt":
+		// CONTRACT sequence=1
+		key = []byte(merklePrefix + clientID + "\x02\x00\x00\x00\x00\x00\x00\x00\x01")
+		if commitment != "" {
+			// receipt commitment value is always the byte 0x02
+			value = []byte{0x02}
+		}
 	case "packet":
 		// CONTRACT sequence=1
 		key = []byte(merklePrefix + clientID + "\x01\x00\x00\x00\x00\x00\x00\x00\x01")
-		// commitmentvalue holds the packet json serialized
+		// commitment holds the packet json serialized
 		if commitment != "" {
 			var packet channelv2types.Packet
 			err := json.Unmarshal([]byte(commitment), &packet)
