@@ -22,6 +22,13 @@ type IBCApp interface {
 	) error
 
 	// OnRecvPacket is executed when a packet is received from receiving chain.
+	//
+	// CONTRACT: unlike other functions of this interface, OnRecvPacket does not
+	// return an error, this is because in case of error (i.e. when
+	// RecvPacketResult.Status == Failure), the underlying transaction is not
+	// aborted. So implementer of this interface must keep in mind that any
+	// writes to the store and all emitted events in this function aren't not
+	// canceled if it returns RecvPacketResult.Status == Failure.
 	OnRecvPacket(
 		cur realm,
 		sourceClient string,

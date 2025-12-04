@@ -155,8 +155,67 @@ func RecvPacket(cur realm, msg types.MsgRecvPacket) types.ResponseResultType {
 		))
 	}
 
-	panic("not implemented")
-	// return types.RESPONSE_FAILURE
+	// Set Packet Receipt to prevent timeout from occurring on counterparty
+	c.setPacketReceipt(msg.Packet.Sequence)
+
+	var (
+		// build up the recv results for each application callback.
+		ack = types.Acknowledgement{
+			AppAcknowledgements: [][]byte{},
+		}
+		isSuccess = true
+	)
+
+	// Emit events
+	chain.Emit(types.EventTypeRecvPacket,
+		types.AttributeKeySrcClient, msg.Packet.SourceClient,
+		types.AttributeKeyDstClient, msg.Packet.DestinationClient,
+		types.AttributeKeySequence, ufmt.Sprintf("%d", msg.Packet.Sequence),
+		types.AttributeKeyTimeoutTimestamp, ufmt.Sprintf("%d", msg.Packet.TimeoutTimestamp),
+		types.AttributeKeyEncodedPacketHex, hex.EncodeToString(msg.Packet.ProtoMarshal()),
+	)
+
+	// Invoke registed app OnRecvPacket() for each payload.DestinationPort.
+	for i, payload := range msg.Packet.Payloads {
+		app := store.route(payload.DestinationPort)
+		res := app.OnRecvPacket(
+			cross, msg.Packet.SourceClient, c.counterpartyClientID,
+			msg.Packet.Sequence, payload,
+		)
+		if res.Status == types.PacketStatus_Failure {
+			isSuccess = false
+			// construct acknowledgement with single app acknowledgement that is the
+			// sentinel error acknowledgement
+			ack = types.Acknowledgement{
+				AppAcknowledgements: [][]byte{types.UniversalErrorAcknowledgement()},
+			}
+			break
+		}
+
+		// successful app acknowledgement cannot equal sentinel error
+		// acknowledgement
+		if bytes.Equal(res.Acknowledgement, types.UniversalErrorAcknowledgement()) {
+			panic(ufmt.Sprintf(
+				"callback error for payload #%d (%s): application acknowledgement cannot be sentinel error acknowledgement",
+				i, payload.DestinationPort,
+			))
+		}
+
+		// append app acknowledgement to the overall acknowledgement
+		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
+
+	}
+
+	// Sanity check to ensure returned acknowledgement and calculated isSuccess
+	// boolean matches
+	if ack.Success() != isSuccess {
+		panic("acknowledgement success does not match isSuccess")
+	}
+	// set the acknowledgement so that it can be verified on the other side
+	c.setPacketAcknowledgement(msg.Packet.Sequence,
+		types.CommitAcknowledgement(ack))
+
+	return types.RESPONSE_SUCCESS
 }
 
 func Acknowledgement(cur realm, msg types.MsgAcknowledgement) types.ResponseResultType {
