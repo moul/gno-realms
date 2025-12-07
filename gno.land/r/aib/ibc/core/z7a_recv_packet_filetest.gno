@@ -117,6 +117,8 @@ func main() {
 	println("res:", res)
 	println("\n----------- assert render clients/07-tendermint-1/packet_receipts")
 	println(core.Render("clients/" + clientID + "/packet_receipts"))
+	println("\n----------- assert render clients/07-tendermint-1/packet_acknowledgements")
+	println(core.Render("clients/" + clientID + "/packet_acknowledgements"))
 	println("\n----------- app report")
 	println(app.Report())
 
@@ -133,6 +135,9 @@ func main() {
 //
 // ----------- assert render clients/07-tendermint-1/packet_receipts
 // [{"sequence":"1","data":"Ag=="}]
+//
+// ----------- assert render clients/07-tendermint-1/packet_acknowledgements
+// [{"sequence":"1","data":"1VweDPBIAzwFFDq7yxEn1x+nFqDTbfioZ8D2GCwn5EU="}]
 //
 // ----------- app report
 // balance:
