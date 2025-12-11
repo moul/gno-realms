@@ -153,7 +153,7 @@ type Hop struct {
 	ClientId string
 }
 
-// NewHop creates a Hop with the given port ID and channel ID.
+// NewHop creates a Hop with the given port ID and client ID.
 func NewHop(portID, clientID string) Hop {
 	return Hop{portID, clientID}
 }
@@ -171,7 +171,7 @@ func (h Hop) ValidateBasic() error {
 }
 
 // String returns the Hop in the format:
-// <portID>/<channelID>
+// <portID>/<clientID>
 func (h Hop) String() string {
 	return ufmt.Sprintf("%s/%s", h.PortId, h.ClientId)
 }
