@@ -124,10 +124,16 @@ func (a AppAcknowledgement) Success() bool {
 }
 
 func (a *AppAcknowledgement) MarshalJSON() []byte {
-	// TODO handle when error is filled
-	node := json.ObjectNode("", map[string]*json.Node{
-		"result": json.StringNode("result", "bar"),
-	})
+	var node *json.Node
+	if a.Response.Error != "" {
+		node = json.ObjectNode("", map[string]*json.Node{
+			"error": json.StringNode("", a.Response.Error),
+		})
+	} else {
+		node = json.ObjectNode("", map[string]*json.Node{
+			"result": json.StringNode("", base64.StdEncoding.EncodeToString(a.Response.Result)),
+		})
+	}
 	bz, _ := json.Marshal(node)
 	return bz
 }

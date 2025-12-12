@@ -257,7 +257,7 @@ func main() {
 //       },
 //       {
 //         "key": "encoded_acknowledgement_hex",
-//         "value": "0a107b22726573756c74223a22626172227d"
+//         "value": "0a117b22726573756c74223a2241513d3d227d"
 //       }
 //     ],
 //     "pkg_path": "gno.land/r/aib/ibc/core"
