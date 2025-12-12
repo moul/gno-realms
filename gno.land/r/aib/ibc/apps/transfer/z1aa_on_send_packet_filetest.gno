@@ -59,7 +59,7 @@ func main() {
 	core.SendPacket(cross, banker, packet)
 
 	println("\nsigner balance after SendPacket:", banker.GetCoins(signer))
-	println("transferAppAddr balance after SendPacket (should be empty since token were burnt):", banker.GetCoins(transferAppAddr))
+	println("transferAppAddr balance after SendPacket (should be empty since tokens were burnt):", banker.GetCoins(transferAppAddr))
 }
 
 // Output:
@@ -67,7 +67,7 @@ func main() {
 // transferAppAddr balance before SendPacket:
 //
 // signer balance after SendPacket:
-// transferAppAddr balance after SendPacket (should be empty since token were burnt):
+// transferAppAddr balance after SendPacket (should be empty since tokens were burnt):
 
 // Events:
 // [

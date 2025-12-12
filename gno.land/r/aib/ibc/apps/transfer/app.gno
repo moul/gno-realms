@@ -201,8 +201,8 @@ func (a *App) OnRecvPacket(
 	// on sender chain IF and only if the token originally came from the
 	// receiving chain.
 	//
-	// NOTE: We use SourcePort and SourceChannel here, because the counterparty
-	// chain would have prefixed with DestPort and DestChannel when originally
+	// NOTE: We use SourcePort and SourceClient here, because the counterparty
+	// chain would have prefixed with DestPort and DestClient when originally
 	// receiving this token.
 	if token.Denom.HasPrefix(payload.SourcePort, sourceClient) {
 		panic("TODO handle when token is an IBC denom")
@@ -283,11 +283,8 @@ func (a *App) OnAcknowledgementPacket(
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
 	} else {
-		coin, err := token.ToCoin()
-		if err != nil {
-			return ufmt.Errorf("token to coin error: %v", err)
-		}
-		if err := unescrowCoin(data.Sender, coin); err != nil {
+		// refund sender in case of ack error
+		if err := refundPacketToken(payload.SourcePort, sourceClient, data.Sender, token); err != nil {
 			return err
 		}
 	}
@@ -328,27 +325,9 @@ func (a *App) OnTimeoutPacket(
 	if err != nil {
 		return err
 	}
-	coin, err := token.ToCoin()
-	if err != nil {
-		return ufmt.Errorf("token to coin error: %v", err)
+	if err := refundPacketToken(payload.SourcePort, sourceClient, data.Sender, token); err != nil {
+		return err
 	}
-	if token.Denom.HasPrefix(payload.SourcePort, sourceClient) {
-		// Mint coin that was burnt during OnSendPacket and send it back to
-		// sender
-		var (
-			from   = runtime.CurrentRealm().Address()
-			to     = runtime.OriginCaller()
-			amount = chain.NewCoins(coin)
-		)
-		banker := gnobanker.NewBanker(gnobanker.BankerTypeRealmIssue)
-		banker.IssueCoin(from, coin.Denom, coin.Amount)
-		banker.SendCoins(from, to, amount)
-	} else {
-		if err := unescrowCoin(data.Sender, coin); err != nil {
-			return err
-		}
-	}
-
 	// Emit events
 	chain.Emit(EventTypeTimeout,
 		AttributeKeyReceiver, data.Sender,

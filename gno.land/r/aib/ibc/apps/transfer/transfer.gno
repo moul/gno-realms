@@ -4,7 +4,33 @@ import (
 	"chain"
 	"chain/banker"
 	"chain/runtime"
+
+	"gno.land/p/nt/ufmt"
 )
+
+func refundPacketToken(sourcePort, sourceClient, sender string, token Token) error {
+	coin, err := token.ToCoin()
+	if err != nil {
+		return ufmt.Errorf("token to coin error: %v", err)
+	}
+	if token.Denom.HasPrefix(sourcePort, sourceClient) {
+		// Mint coin that was burnt during OnSendPacket and send it back to
+		// sender
+		var (
+			from   = runtime.CurrentRealm().Address()
+			to     = runtime.OriginCaller()
+			amount = chain.NewCoins(coin)
+		)
+		banker := banker.NewBanker(banker.BankerTypeRealmIssue)
+		banker.IssueCoin(from, coin.Denom, coin.Amount)
+		banker.SendCoins(from, to, amount)
+	} else {
+		if err := unescrowCoin(sender, coin); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // escrowCoins sends the specified amount of tokens from the sender to the
 // realm address.

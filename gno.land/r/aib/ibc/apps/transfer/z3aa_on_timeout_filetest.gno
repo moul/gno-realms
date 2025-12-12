@@ -67,7 +67,7 @@ func main() {
 	// Send the packet
 	sequence := core.SendPacket(cross, banker, sendPacket)
 	println("\nsigner balance after SendPacket:", banker.GetCoins(signer))
-	println("transferAppAddr balance after SendPacket (should be empty since token were burnt):", banker.GetCoins(transferAppAddr))
+	println("transferAppAddr balance after SendPacket (should be empty since tokens were burnt):", banker.GetCoins(transferAppAddr))
 
 	// Change block time to after the timeout
 	ctx := testing.GetContext()
@@ -215,7 +215,7 @@ func main() {
 // transferAppAddr balance before SendPacket:
 //
 // signer balance after SendPacket:
-// transferAppAddr balance after SendPacket (should be empty since token were burnt):
+// transferAppAddr balance after SendPacket (should be empty since tokens were burnt):
 //
 // ack res: (2 gno.land/p/aib/ibc/types.ResponseResultType)
 //
