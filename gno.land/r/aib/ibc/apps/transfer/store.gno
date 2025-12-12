@@ -25,6 +25,7 @@ func hasDenomMetadata(voucherDenom string) bool {
 }
 
 func setDenomMetadata(voucherDenom string, denom Denom) {
+	// TODO do we really need an extra struct ? Why not storing the Denom directly?
 	dm := DenomMetadata{
 		Base:        denom.IBCDenom(),
 		Display:     denom.Path(),

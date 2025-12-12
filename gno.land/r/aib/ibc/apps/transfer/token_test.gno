@@ -42,7 +42,7 @@ func TestTokenToCoin(t *testing.T) {
 				Amount: "value",
 			},
 			chain.Coin{},
-			"unable to parse transfer amount",
+			"unable to parse amount \"value\" into int64",
 		},
 	}
 

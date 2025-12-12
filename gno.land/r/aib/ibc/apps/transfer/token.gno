@@ -22,11 +22,17 @@ type Token struct {
 // If the Amount cannot be parsed, an error is returned with a wrapped error
 // message.
 func (t Token) ToCoin() (chain.Coin, error) {
-	transferAmount, err := strconv.ParseInt(t.Amount, 10, 64)
+	amt, err := t.AmountInt64()
 	if err != nil {
-		return chain.Coin{}, ufmt.Errorf("unable to parse transfer amount (%s) into int64", t.Amount)
+		return chain.Coin{}, err
 	}
+	return chain.NewCoin(t.Denom.IBCDenom(), amt), nil
+}
 
-	coin := chain.NewCoin(t.Denom.IBCDenom(), transferAmount)
-	return coin, nil
+func (t Token) AmountInt64() (int64, error) {
+	amt, err := strconv.ParseInt(t.Amount, 10, 64)
+	if err != nil {
+		return 0, ufmt.Errorf("unable to parse amount %q into int64", t.Amount)
+	}
+	return amt, nil
 }

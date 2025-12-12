@@ -1,5 +1,5 @@
 // PKGPATH: gno.land/r/aib/main
-// SEND: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
+// SEND: 100ibc/F9A67CB19B2CAD2ADEC20AD475BE86DF851DEC2B6F6CABC9B7B781BD9131D18F
 package main
 
 import (
@@ -17,7 +17,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// OnSendPacket: success with IBC token
+// OnSendPacket: success w/ IBC token
 func main() {
 	var (
 		chainID        = "chain-id-2"
@@ -31,7 +31,7 @@ func main() {
 
 	signer := runtime.CurrentRealm().Address()
 	payload := transfer.FungibleTokenPacketData{
-		Denom:    "transfer/07-tendermint-2/uatone",
+		Denom:    "transfer/" + clientID + "/uatone", // expect transfer/07-tendermint-1/uatone
 		Amount:   "100",
 		Sender:   signer.String(),
 		Receiver: "atone1user",
@@ -59,15 +59,15 @@ func main() {
 	core.SendPacket(cross, banker, packet)
 
 	println("\nsigner balance after SendPacket:", banker.GetCoins(signer))
-	println("transferAppAddr balance after SendPacket:", banker.GetCoins(transferAppAddr))
+	println("transferAppAddr balance after SendPacket (should be empty since token were burnt):", banker.GetCoins(transferAppAddr))
 }
 
 // Output:
-// signer balance before SendPacket: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
+// signer balance before SendPacket: 100ibc/F9A67CB19B2CAD2ADEC20AD475BE86DF851DEC2B6F6CABC9B7B781BD9131D18F
 // transferAppAddr balance before SendPacket:
 //
 // signer balance after SendPacket:
-// transferAppAddr balance after SendPacket: 100ibc/542B346608DE032752AF0B21D165190090CD3194F6D177CF35025E39596ABC16
+// transferAppAddr balance after SendPacket (should be empty since token were burnt):
 
 // Events:
 // [
@@ -110,7 +110,7 @@ func main() {
 //       },
 //       {
 //         "key": "encoded_packet_hex",
-//         "value": "0801120f30372d74656e6465726d696e742d311a0f30372d74656e6465726d696e742d3220e2a1d8cc042a93010a087472616e7366657212087472616e736665721a0769637332302d3122166170706c69636174696f6e2f782d70726f746f6275662a5c0a1f7472616e736665722f30372d74656e6465726d696e742d322f7561746f6e6512033130301a286731676a73386e6664726435357a33787539676a6361746e6a3239766b7775797834666671786439220a61746f6e653175736572"
+//         "value": "0801120f30372d74656e6465726d696e742d311a0f30372d74656e6465726d696e742d3220e2a1d8cc042a93010a087472616e7366657212087472616e736665721a0769637332302d3122166170706c69636174696f6e2f782d70726f746f6275662a5c0a1f7472616e736665722f30372d74656e6465726d696e742d312f7561746f6e6512033130301a286731676a73386e6664726435357a33787539676a6361746e6a3239766b7775797834666671786439220a61746f6e653175736572"
 //       }
 //     ],
 //     "pkg_path": "gno.land/r/aib/ibc/core"
@@ -128,7 +128,7 @@ func main() {
 //       },
 //       {
 //         "key": "denom",
-//         "value": "transfer/07-tendermint-2/uatone"
+//         "value": "transfer/07-tendermint-1/uatone"
 //       },
 //       {
 //         "key": "amount",

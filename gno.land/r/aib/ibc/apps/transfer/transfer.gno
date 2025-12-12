@@ -4,22 +4,15 @@ import (
 	"chain"
 	"chain/banker"
 	"chain/runtime"
-
-	"gno.land/p/nt/ufmt"
 )
 
 // escrowCoins sends the specified amount of tokens from the sender to the
 // realm address.
-func escrowCoin(banker banker.Banker, token Token) error {
-	// TODO handle when token is an IBC denom
-	coin, err := token.ToCoin()
-	if err != nil {
-		return ufmt.Errorf("token to coin error: %v", err)
-	}
-
+func escrowCoin(banker banker.Banker, coin chain.Coin) error {
 	// Send the amount from sender to realm address
 	var (
-		from   = runtime.OriginCaller()
+		from = runtime.OriginCaller()
+		// TODO no app/clientID specific escrow address ?
 		to     = runtime.CurrentRealm().Address()
 		amount = chain.NewCoins(coin)
 	)
@@ -32,15 +25,10 @@ func escrowCoin(banker banker.Banker, token Token) error {
 
 // escrowCoins sends the specified amount of tokens from the realm to the
 // original sender.
-func unescrowCoin(sender string, token Token) error {
-	// TODO handle when token is an IBC denom
-	coin, err := token.ToCoin()
-	if err != nil {
-		return ufmt.Errorf("token to coin error: %v", err)
-	}
-
+func unescrowCoin(sender string, coin chain.Coin) error {
 	// Send back the amount from escrow address back to sender
 	var (
+		// TODO no app/clientID specific escrow address ?
 		from   = runtime.CurrentRealm().Address()
 		to     = address(sender)
 		amount = chain.NewCoins(coin)

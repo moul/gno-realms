@@ -193,7 +193,7 @@ func main() {
 //     "attrs": [
 //       {
 //         "key": "denom_hash",
-//         "value": "caef9ca8ce6c302d73a831a49e34e59149d3a9ad96ccebdfbf62f6d5710d92d8"
+//         "value": "CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8"
 //       },
 //       {
 //         "key": "denom",

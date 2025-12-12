@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"chain"
 	"chain/banker"
+	gnobanker "chain/banker"
 	"chain/runtime"
-	"encoding/hex"
 	"errors"
 	"strconv"
 	"strings"
@@ -39,7 +39,7 @@ var _ app.IBCApp = &App{}
 // Implements app.IBCApp
 func (a *App) OnSendPacket(
 	_ realm,
-	banker banker.Banker,
+	banker gnobanker.Banker,
 	sourceClient string,
 	destinationClient string,
 	sequence uint64,
@@ -98,8 +98,24 @@ func (a *App) OnSendPacket(
 		return ufmt.Errorf("base denomination %s cannot contain slashes for IBC v2 packet", token.Denom.Base)
 	}
 
-	if err := escrowCoin(banker, token); err != nil {
-		return err
+	coin, err := token.ToCoin()
+	if err != nil {
+		return ufmt.Errorf("token to coin error: %v", err)
+	}
+	if token.Denom.HasPrefix(payload.SourcePort, sourceClient) {
+		// Send the amount from sender to realm address to burn
+		var (
+			from   = runtime.OriginCaller()
+			to     = runtime.CurrentRealm().Address()
+			amount = chain.NewCoins(coin)
+		)
+		banker.SendCoins(from, to, amount)
+		gnobanker.NewBanker(gnobanker.BankerTypeRealmIssue).
+			RemoveCoin(to, coin.Denom, coin.Amount)
+	} else {
+		if err := escrowCoin(banker, coin); err != nil {
+			return err
+		}
 	}
 
 	// Emit events
@@ -193,7 +209,8 @@ func (a *App) OnRecvPacket(
 	} else {
 		// sender chain is the source, mint vouchers
 
-		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
+		// since SendPacket did not prefix the denomination, we must add the
+		// destination port and client to the trace
 		trace := []Hop{NewHop(payload.DestinationPort, destinationClient)}
 		token.Denom.Trace = append(trace, token.Denom.Trace...)
 
@@ -203,7 +220,7 @@ func (a *App) OnRecvPacket(
 		}
 
 		chain.Emit(EventTypeDenom,
-			AttributeKeyDenomHash, hex.EncodeToString(token.Denom.Hash()),
+			AttributeKeyDenomHash, token.Denom.HashHex(),
 			AttributeKeyDenom, string(token.Denom.MarshalJSON()),
 		)
 
@@ -211,7 +228,7 @@ func (a *App) OnRecvPacket(
 		banker := banker.NewBanker(banker.BankerTypeRealmIssue)
 		realmAddr := runtime.CurrentRealm().Address()
 		var amount int64
-		amount, ackErr = strconv.ParseInt(token.Amount, 10, 64)
+		amount, ackErr = token.AmountInt64()
 		if ackErr != nil {
 			ack = types.NewErrorAppAcknowledgement(ackErr)
 			return types.RecvPacketResult{Status: types.PacketStatus_Failure}
@@ -266,7 +283,11 @@ func (a *App) OnAcknowledgementPacket(
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
 	} else {
-		if err := unescrowCoin(data.Sender, token); err != nil {
+		coin, err := token.ToCoin()
+		if err != nil {
+			return ufmt.Errorf("token to coin error: %v", err)
+		}
+		if err := unescrowCoin(data.Sender, coin); err != nil {
 			return err
 		}
 	}
@@ -307,8 +328,25 @@ func (a *App) OnTimeoutPacket(
 	if err != nil {
 		return err
 	}
-	if err := unescrowCoin(data.Sender, token); err != nil {
-		return err
+	coin, err := token.ToCoin()
+	if err != nil {
+		return ufmt.Errorf("token to coin error: %v", err)
+	}
+	if token.Denom.HasPrefix(payload.SourcePort, sourceClient) {
+		// Mint coin that was burnt during OnSendPacket and send it back to
+		// sender
+		var (
+			from   = runtime.CurrentRealm().Address()
+			to     = runtime.OriginCaller()
+			amount = chain.NewCoins(coin)
+		)
+		banker := gnobanker.NewBanker(gnobanker.BankerTypeRealmIssue)
+		banker.IssueCoin(from, coin.Denom, coin.Amount)
+		banker.SendCoins(from, to, amount)
+	} else {
+		if err := unescrowCoin(data.Sender, coin); err != nil {
+			return err
+		}
 	}
 
 	// Emit events

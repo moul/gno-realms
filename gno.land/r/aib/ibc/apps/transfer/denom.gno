@@ -87,6 +87,10 @@ func (d Denom) Hash() []byte {
 	return hash[:]
 }
 
+func (d Denom) HashHex() string {
+	return strings.ToUpper(hex.EncodeToString(d.Hash()))
+}
+
 // IBCDenom a coin denomination for an ICS20 fungible token in the format
 // 'ibc/{hash(trace + baseDenom)}'. If the trace is empty, it will return the
 // base denomination.
@@ -95,8 +99,7 @@ func (d Denom) IBCDenom() string {
 		return d.Base
 	}
 
-	return ufmt.Sprintf("%s/%s", denomPrefix,
-		strings.ToUpper(hex.EncodeToString(d.Hash())))
+	return ufmt.Sprintf("%s/%s", denomPrefix, d.HashHex())
 }
 
 func (d Denom) MarshalJSON() []byte {
