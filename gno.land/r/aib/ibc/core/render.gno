@@ -118,7 +118,7 @@ func RenderClientPacketCommitments(w *mux.ResponseWriter, r *mux.Request) {
 		renderNode(w, nodeErrorClientNotFound(id))
 		return
 	}
-	renderCommitments(w, c.packetCommitmentsBySeq)
+	renderCommitments(w, r, c.packetCommitmentsBySeq)
 }
 
 func RenderClientPacketReceipts(w *mux.ResponseWriter, r *mux.Request) {
@@ -128,7 +128,7 @@ func RenderClientPacketReceipts(w *mux.ResponseWriter, r *mux.Request) {
 		renderNode(w, nodeErrorClientNotFound(id))
 		return
 	}
-	renderCommitments(w, c.packetReceiptsBySeq)
+	renderCommitments(w, r, c.packetReceiptsBySeq)
 }
 
 func RenderClientPacketAcknowledgements(w *mux.ResponseWriter, r *mux.Request) {
@@ -138,21 +138,17 @@ func RenderClientPacketAcknowledgements(w *mux.ResponseWriter, r *mux.Request) {
 		renderNode(w, nodeErrorClientNotFound(id))
 		return
 	}
-	renderCommitments(w, c.packetAcknowledgementsBySeq)
+	renderCommitments(w, r, c.packetAcknowledgementsBySeq)
 }
 
-func renderCommitments(w *mux.ResponseWriter, tree *avl.Tree) {
-	var nodes []*json.Node
-	tree.Iterate("", "", func(key string, v any) bool {
-		// TODO paginate
-		id, _ := seqid.FromBinary(key)
-		nodes = append(nodes, json.ObjectNode("", map[string]*json.Node{
+func renderCommitments(w *mux.ResponseWriter, r *mux.Request, tree *avl.Tree) {
+	renderNode(w, jsonpage.Render(tree, r, func(k string, v any) *json.Node {
+		id, _ := seqid.FromBinary(k)
+		return json.ObjectNode("", map[string]*json.Node{
 			"sequence": json.StringNode("", strconv.FormatUint(uint64(id), 10)),
 			"data":     json.StringNode("", base64.StdEncoding.EncodeToString(v.([]byte))),
-		}))
-		return false
-	})
-	renderNode(w, json.ArrayNode("", nodes))
+		})
+	}))
 }
 
 // Implements jsonpage.JSONRenderer

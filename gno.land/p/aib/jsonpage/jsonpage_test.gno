@@ -168,7 +168,6 @@ func TestRender(t *testing.T) {
 
 			n := Render(tt.tree, r, tt.renderer)
 
-			println(n)
 			uassert.Equal(t, tt.expectedJSON, n.String())
 		})
 	}
