@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"gno.land/p/aib/jsonpage"
 	"gno.land/p/nt/mux"
 	"gno.land/p/nt/ufmt"
 	"gno.land/p/onbloc/json"
@@ -21,13 +22,7 @@ func RenderHome(w *mux.ResponseWriter, r *mux.Request) {
 }
 
 func RenderDenoms(w *mux.ResponseWriter, r *mux.Request) {
-	var nodes []*json.Node
-	denomsByBase.Iterate("", "", func(key string, v any) bool {
-		// TODO paginate
-		nodes = append(nodes, renderDenom(v.(DenomMetadata)))
-		return false
-	})
-	renderNode(w, json.ArrayNode("", nodes))
+	renderNode(w, jsonpage.Render(denomsByBase, r, nil))
 }
 
 func RenderDenom(w *mux.ResponseWriter, r *mux.Request) {
@@ -37,16 +32,7 @@ func RenderDenom(w *mux.ResponseWriter, r *mux.Request) {
 		renderNode(w, nodeError(ufmt.Sprintf("denom %s not found", denom)))
 		return
 	}
-	renderNode(w, renderDenom(d.(DenomMetadata)))
-}
-
-func renderDenom(d DenomMetadata) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"base":        json.StringNode("", d.Base),
-		"display":     json.StringNode("", d.Display),
-		"symbol":      json.StringNode("", d.Symbol),
-		"description": json.StringNode("", d.Description),
-	})
+	renderNode(w, d.(Denom).RenderJSON())
 }
 
 func renderNode(w *mux.ResponseWriter, n *json.Node) {

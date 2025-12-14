@@ -8,6 +8,7 @@ import (
 	"gno.land/p/aib/ibc/host"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/nt/ufmt"
+	"gno.land/p/onbloc/json"
 )
 
 // Denom holds the base denom of a Token and a trace of the chains it was sent
@@ -98,13 +99,20 @@ func (d Denom) IBCDenom() string {
 	if d.IsNative() {
 		return d.Base
 	}
-
 	return ufmt.Sprintf("%s/%s", denomPrefix, d.HashHex())
 }
 
+// Implements jsonpage.JSONRenderer
+func (d Denom) RenderJSON() *json.Node {
+	return json.ObjectNode("", map[string]*json.Node{
+		"base":  json.StringNode("", d.Base),
+		"path":  json.StringNode("", d.Path()),
+		"denom": json.StringNode("", d.IBCDenom()),
+	})
+}
+
 func (d Denom) MarshalJSON() []byte {
-	// TODO
-	return []byte("TODO")
+	return []byte(d.RenderJSON().String())
 }
 
 // ExtractDenomFromPath returns the denom from the full path.

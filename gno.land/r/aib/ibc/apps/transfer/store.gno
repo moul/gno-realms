@@ -1,20 +1,10 @@
 package transfer
 
 import (
-	"strings"
-
 	"gno.land/p/nt/avl"
-	"gno.land/p/nt/ufmt"
 )
 
-type DenomMetadata struct {
-	Base        string
-	Display     string
-	Symbol      string
-	Description string
-}
-
-var denomsByBase *avl.Tree // base:DenomMetadata
+var denomsByBase *avl.Tree // ibcDenom:Denom
 
 func init() {
 	denomsByBase = avl.NewTree()
@@ -24,13 +14,6 @@ func hasDenomMetadata(voucherDenom string) bool {
 	return denomsByBase.Has(voucherDenom)
 }
 
-func setDenomMetadata(voucherDenom string, denom Denom) {
-	// TODO do we really need an extra struct ? Why not storing the Denom directly?
-	dm := DenomMetadata{
-		Base:        denom.IBCDenom(),
-		Display:     denom.Path(),
-		Symbol:      strings.ToUpper(denom.Base),
-		Description: ufmt.Sprintf("IBC token from %s", denom.Path()),
-	}
-	denomsByBase.Set(voucherDenom, dm)
+func setDenomMetadata(denom Denom) {
+	denomsByBase.Set(denom.IBCDenom(), denom)
 }

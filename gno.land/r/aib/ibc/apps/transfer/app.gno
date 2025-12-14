@@ -234,7 +234,7 @@ func (a *App) OnRecvPacket(
 
 		voucherDenom := token.Denom.IBCDenom()
 		if !hasDenomMetadata(voucherDenom) {
-			setDenomMetadata(voucherDenom, token.Denom)
+			setDenomMetadata(token.Denom)
 		}
 
 		chain.Emit(EventTypeDenom,

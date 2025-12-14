@@ -137,10 +137,10 @@ func main() {
 // receiver balance after RecvPacket: 100ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8
 //
 // ----------- assert render /denoms
-// [{"base":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","display":"transfer/07-tendermint-1/uphoton","symbol":"UPHOTON","description":"IBC token from transfer/07-tendermint-1/uphoton"}]
+// {"items":[{"base":"uphoton","path":"transfer/07-tendermint-1/uphoton","denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8"}],"page":1,"total":1}
 //
 // ----------- assert render /denoms/ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8
-// {"base":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","display":"transfer/07-tendermint-1/uphoton","symbol":"UPHOTON","description":"IBC token from transfer/07-tendermint-1/uphoton"}
+// {"base":"uphoton","path":"transfer/07-tendermint-1/uphoton","denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8"}
 
 // Events:
 // [
@@ -197,7 +197,7 @@ func main() {
 //       },
 //       {
 //         "key": "denom",
-//         "value": "TODO"
+//         "value": "{\"base\":\"uphoton\",\"path\":\"transfer/07-tendermint-1/uphoton\",\"denom\":\"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8\"}"
 //       }
 //     ],
 //     "pkg_path": "gno.land/r/aib/ibc/apps/transfer"
