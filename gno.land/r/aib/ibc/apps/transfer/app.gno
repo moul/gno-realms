@@ -45,6 +45,7 @@ func (a *App) OnSendPacket(
 	sequence uint64,
 	payload types.Payload,
 ) error {
+	// TODO do we need to ensure that caller is aib/ibc/core realm ?
 	// TODO add parameter to disable the app
 	// TODO add parameter to block sender addr
 
@@ -233,8 +234,8 @@ func (a *App) OnRecvPacket(
 		token.Denom.Trace = append(trace, token.Denom.Trace...)
 
 		voucherDenom := token.Denom.IBCDenom()
-		if !hasDenomMetadata(voucherDenom) {
-			setDenomMetadata(token.Denom)
+		if !hasDenom(voucherDenom) {
+			setDenom(token.Denom)
 		}
 
 		chain.Emit(EventTypeDenom,

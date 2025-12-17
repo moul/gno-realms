@@ -45,7 +45,7 @@ func escrowCoin(banker banker.Banker, coin chain.Coin) error {
 	)
 	banker.SendCoins(from, to, amount)
 
-	// TODO track escrowed coins by denom/client in store?
+	addEscrowForDenom(coin)
 
 	return nil
 }
@@ -63,7 +63,7 @@ func unescrowCoin(sender string, coin chain.Coin) error {
 	)
 	banker.SendCoins(from, to, amount)
 
-	// TODO track escrowed coins by denom/client in store?
+	subEscrowForDenom(coin)
 
 	return nil
 }

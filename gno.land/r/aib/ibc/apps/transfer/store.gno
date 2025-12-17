@@ -1,21 +1,42 @@
 package transfer
 
 import (
+	"chain"
+
 	"gno.land/p/nt/avl"
 )
 
 var (
-	denoms *avl.Tree // ibcDenom:Denom
+	denoms      *avl.Tree // ibcDenom:Denom
+	totalEscrow *avl.Tree // denom:chain.Coin
 )
 
 func init() {
 	denoms = avl.NewTree()
+	totalEscrow = avl.NewTree()
 }
 
-func hasDenomMetadata(voucherDenom string) bool {
+func hasDenom(voucherDenom string) bool {
 	return denoms.Has(voucherDenom)
 }
 
-func setDenomMetadata(denom Denom) {
+func setDenom(denom Denom) {
 	denoms.Set(denom.IBCDenom(), denom)
+}
+
+func addEscrowForDenom(c chain.Coin) {
+	x, found := totalEscrow.Get(c.Denom)
+	if found {
+		c = x.(chain.Coin).Add(c)
+	}
+	totalEscrow.Set(c.Denom, c)
+}
+
+func subEscrowForDenom(c chain.Coin) {
+	x, found := totalEscrow.Get(c.Denom)
+	if !found {
+		x = chain.Coin{Denom: c.Denom}
+	}
+	c = x.(chain.Coin).Sub(c)
+	totalEscrow.Set(c.Denom, c)
 }

@@ -34,6 +34,10 @@ func main() {
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
 
 	// The transfer app must have 100ugnot escrowed for this test to work
+	// NOTE: The setup has only send 100ugnot to the transfer app, but these
+	// tokens are not stored as escrowed like they should be after a real
+	// transfer. As a result the escrowed ugnot will be negative at the end of
+	// the test.
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
 	banker.NewBanker(banker.BankerTypeOriginSend).SendCoins(
 		runtime.CurrentRealm().Address(),
@@ -127,21 +131,33 @@ func main() {
 	}
 	banker := banker.NewBanker(banker.BankerTypeReadonly)
 	println("\nreceiver balance before RecvPacket:", banker.GetCoins(receiver))
+	// NOTE the following will show 0ugnot since there was no previous escrowed
+	// ugnot before that test.
+	println("----------- assert render total_escrow/ugnot before RecvPacket")
+	println(transfer.Render("total_escrow/ugnot"))
 
 	res := core.RecvPacket(cross, recvPacket)
 
 	println("\nack res:", res)
 	println("\nreceiver balance after RecvPacket:", banker.GetCoins(receiver))
+	// NOTE the following will show -100ugnot since there was no previous
+	// escrowed ugnot before that test.
+	println("----------- assert render total_escrow/ugnot after RecvPacket")
+	println(transfer.Render("total_escrow/ugnot"))
 }
 
 // Output:
 // Payload proto: Ch90cmFuc2Zlci8wNy10ZW5kZXJtaW50LTQyL3Vnbm90EgMxMDAaCmF0b25lMXVzZXIiKGcxd2Zqa3hldGZ3ZWpoeWg2bHRhMDQ3aDZsdGEwNDdoNmxsbTgyeWw=
 //
 // receiver balance before RecvPacket:
+// ----------- assert render total_escrow/ugnot before RecvPacket
+// {"denom":"ugnot","amount":0}
 //
 // ack res: (2 gno.land/p/aib/ibc/types.ResponseResultType)
 //
 // receiver balance after RecvPacket: 100ugnot
+// ----------- assert render total_escrow/ugnot after RecvPacket
+// {"denom":"ugnot","amount":-100}
 
 // Events:
 // [

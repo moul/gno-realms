@@ -1,6 +1,8 @@
 package transfer
 
 import (
+	"chain"
+
 	"gno.land/p/aib/jsonpage"
 	"gno.land/p/nt/mux"
 	"gno.land/p/nt/ufmt"
@@ -12,6 +14,7 @@ func Render(path string) string {
 	router.HandleFunc("", renderHome)
 	router.HandleFunc("denoms", renderDenoms)
 	router.HandleFunc("denoms/ibc/{hash}", renderDenom)
+	router.HandleFunc("total_escrow/{denom}", renderTotalEscrowForDenom)
 	// TODO add total escrowed for denom
 	return router.Render(path)
 }
@@ -33,6 +36,19 @@ func renderDenom(w *mux.ResponseWriter, r *mux.Request) {
 		return
 	}
 	renderNode(w, d.(Denom).RenderJSON())
+}
+
+func renderTotalEscrowForDenom(w *mux.ResponseWriter, r *mux.Request) {
+	denom := r.GetVar("denom")
+	var amt int64
+	x, found := totalEscrow.Get(denom)
+	if found {
+		amt = x.(chain.Coin).Amount
+	}
+	renderNode(w, json.ObjectNode("", map[string]*json.Node{
+		"denom":  json.StringNode("", denom),
+		"amount": json.NumberNode("", float64(amt)),
+	}))
 }
 
 func renderNode(w *mux.ResponseWriter, n *json.Node) {

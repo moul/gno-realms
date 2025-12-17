@@ -54,19 +54,27 @@ func main() {
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
 	println("signer balance before SendPacket:", banker.GetCoins(signer))
 	println("transferAppAddr balance before SendPacket:", banker.GetCoins(transferAppAddr))
+	println("----------- assert render total_escrow/ugnot before SendPacket")
+	println(transfer.Render("total_escrow/ugnot"))
 
 	core.SendPacket(cross, banker, packet)
 
 	println("\nsigner balance after SendPacket:", banker.GetCoins(signer))
 	println("transferAppAddr balance after SendPacket:", banker.GetCoins(transferAppAddr))
+	println("----------- assert render total_escrow/ugnot after SendPacket")
+	println(transfer.Render("total_escrow/ugnot"))
 }
 
 // Output:
 // signer balance before SendPacket: 100ugnot
 // transferAppAddr balance before SendPacket:
+// ----------- assert render total_escrow/ugnot before SendPacket
+// {"denom":"ugnot","amount":0}
 //
 // signer balance after SendPacket:
 // transferAppAddr balance after SendPacket: 100ugnot
+// ----------- assert render total_escrow/ugnot after SendPacket
+// {"denom":"ugnot","amount":100}
 
 // Events:
 // [
