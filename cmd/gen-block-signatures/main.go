@@ -53,6 +53,9 @@ func genSignaturesCode(privs []ed25519.PrivKey, chainID, apphashSeed, apphashHex
 			panic(err)
 		}
 	} else {
+		if apphashSeed == "" {
+			apphashSeed = fmt.Sprintf("apphash-%d", height)
+		}
 		apphash = hash(apphashSeed)
 	}
 	// create vals from privs
