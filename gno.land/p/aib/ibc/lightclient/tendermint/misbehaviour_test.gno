@@ -21,172 +21,137 @@ func TestMisbehaviourValidateBasic(t *testing.T) {
 			malleate: func() {},
 			expErr:   "",
 		},
-		// TODO continue
-		/*
-			{
-				name:     "valid fork misbehaviour, two headers at same height have different time",
-				malleate: func() {},
-				expErr:   "",
+		{
+			name: "invalid misbehaviour, header1 is nil",
+			malleate: func() {
+				misbehaviour.Header1 = nil
 			},
-				{
-					"valid time misbehaviour, both headers at different heights are at same time",
-					&tendermint.Misbehaviour{
-						Header1:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight+5), heightMinus1, s.now, s.valSet, s.valSet, s.valSet, s.signers),
-						Header2:  s.header,
-						ClientId: clientID,
-					},
-					func(misbehaviour *tendermint.Misbehaviour) error { return nil },
-					nil,
-				},
-				{
-					"misbehaviour Header1 is nil",
-					NewMisbehaviour(clientID, nil, s.header),
-					func(m *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidHeader, "misbehaviour Header1 cannot be nil"),
-				},
-				{
-					"misbehaviour Header2 is nil",
-					NewMisbehaviour(clientID, s.header, nil),
-					func(m *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidHeader, "misbehaviour Header2 cannot be nil"),
-				},
-				{
-					"valid misbehaviour with different trusted headers",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), clienttypes.NewHeight(0, height.RevisionHeight-3), s.now.Add(time.Minute), s.valSet, s.valSet, bothValSet, s.signers),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					nil,
-				},
-				{
-					"trusted height is 0 in Header1",
-					&Misbehaviour{
-						Header1:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), clienttypes.ZeroHeight(), s.now.Add(time.Minute), s.valSet, s.valSet, s.valSet, s.signers),
-						Header2:  s.header,
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidHeaderHeight, "misbehaviour Header1 cannot have zero revision height"),
-				},
-				{
-					"trusted height is 0 in Header2",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), clienttypes.ZeroHeight(), s.now.Add(time.Minute), s.valSet, s.valSet, s.valSet, s.signers),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidHeaderHeight, "misbehaviour Header2 cannot have zero revision height"),
-				},
-				{
-					"trusted valset is nil in Header1",
-					&Misbehaviour{
-						Header1:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now.Add(time.Minute), s.valSet, s.valSet, nil, s.signers),
-						Header2:  s.header,
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header1 cannot be empty"),
-				},
-				{
-					"trusted valset is nil in Header2",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now.Add(time.Minute), s.valSet, s.valSet, nil, s.signers),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errorsmod.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header2 cannot be empty"),
-				},
-				{
-					"invalid client ID ",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now, s.valSet, s.valSet, s.valSet, s.signers),
-						ClientId: "GAI",
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errors.New("identifier GAI has invalid length"),
-				},
-				{
-					"chainIDs do not match",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader("ethermint", int64(height.RevisionHeight), heightMinus1, s.now, s.valSet, s.valSet, s.valSet, s.signers),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errorsmod.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers must have identical chainIDs"),
-				},
-				{
-					"header2 height is greater",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, 6, clienttypes.NewHeight(0, height.RevisionHeight+1), s.now, s.valSet, s.valSet, s.valSet, s.signers),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error { return nil },
-					errors.New("Header1 height is less than Header2 height"),
-				},
-				{
-					"header 1 doesn't have 2/3 majority",
-					&Misbehaviour{
-						Header1:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now, bothValSet, bothValSet, s.valSet, bothSigners),
-						Header2:  s.header,
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error {
-						// voteSet contains only altVal which is less than 2/3 of total power (height/1height)
-						wrongVoteSet := cmttypes.NewVoteSet(chainID, int64(misbehaviour.Header1.GetHeight().GetRevisionHeight()), 1, cmtproto.PrecommitType, altValSet)
-						blockID, err := cmttypes.BlockIDFromProto(&misbehaviour.Header1.Commit.BlockID)
-						if err != nil {
-							return err
-						}
+			expErr: "misbehaviour Header1 cannot be nil",
+		},
+		{
+			name: "invalid misbehaviour, header2 is nil",
+			malleate: func() {
+				misbehaviour.Header2 = nil
+			},
+			expErr: "misbehaviour Header2 cannot be nil",
+		},
+		{
+			name: "invalid misbehaviour, header1 trusted height is 0",
+			malleate: func() {
+				misbehaviour.Header1.TrustedHeight = types.NewHeight(0, 0)
+			},
+			expErr: "misbehaviour Header1 cannot have zero revision height",
+		},
+		{
+			name: "invalid misbehaviour, header2 tusted height is 0",
+			malleate: func() {
+				misbehaviour.Header2.TrustedHeight = types.NewHeight(0, 0)
+			},
+			expErr: "misbehaviour Header2 cannot have zero revision height",
+		},
+		{
+			name: "invalid misbehaviour, header1 trusted val is nil",
+			malleate: func() {
+				misbehaviour.Header1.TrustedValidators = nil
+			},
+			expErr: "trusted validator set in Header1 cannot be empty",
+		},
+		{
+			name: "invalid misbehaviour, header2 trusted val is nil",
+			malleate: func() {
+				misbehaviour.Header2.TrustedValidators = nil
+			},
+			expErr: "trusted validator set in Header2 cannot be empty",
+		},
+		{
+			name: "invalid misbehaviour, chainID mismatch",
+			malleate: func() {
+				misbehaviour.Header2.Header.ChainID = "xxx"
+			},
+			expErr: "headers must have identical chainIDs",
+		},
+		{
+			name: "valid misbehaviour, same headers",
+			malleate: func() {
+				misbehaviour.Header2 = misbehaviour.Header1
+			},
+			expErr: "",
+		},
+		{
+			name: "invalid misbehaviour, header2 height is greater",
+			malleate: func() {
+				// Update header2 so it has a height greater than header1 (3)
+				// NOTE code generated by:
+				// go run -C ./cmd/gen-block-signatures . -chainid=gno.land -header-time-shift=0 -height=4 -new-validators=0 -privkeys=JR6fAmf/x02hJxbgPlOUlEw82K1g5L6t7T0ochto3n/IQH0mFRpgSOtSqy3rxrjQmFKzT36uAKK7mHczlEvg0w==,uUowEMik5bYqOuxT8xXS6+vhmeJ1ogEoG7lUuKColILehBmNNm2bNvn7IQmuyrnkIhRFVI2XQ6tO4HWVxCFoOA==
+				var (
+					apphash = hash("apphash-4")
+					// priv=JR6fAmf/x02hJxbgPlOUlEw82K1g5L6t7T0ochto3n/IQH0mFRpgSOtSqy3rxrjQmFKzT36uAKK7mHczlEvg0w==
+					val1 = tendermint.NewValidator("ZekR7Mi3r4Uewt3lPS3YmWPr81o=", "yEB9JhUaYEjrUqst68a40JhSs09+rgCiu5h3M5RL4NM=", 10)
+					// priv=uUowEMik5bYqOuxT8xXS6+vhmeJ1ogEoG7lUuKColILehBmNNm2bNvn7IQmuyrnkIhRFVI2XQ6tO4HWVxCFoOA==
+					val2            = tendermint.NewValidator("mdEIzF8KCHUrBT16vM7dhc/nZ4Q=", "3oQZjTZtmzb5+yEJrsq55CIURVSNl0OrTuB1lcQhaDg=", 10)
+					valset          = tendermint.NewValset(val1, val2)
+					commitTimestamp = toTime("2025-09-25T07:55:57.306746166Z")
+					newHeight       = uint64(4)
+					newTimestamp    = time.Now()
+					nextValset      = tendermint.NewValset(val1, val2)
+					trustedValset   = tendermint.NewValset(val1, val2)
+					trustedHeight   = types.NewHeight(0, 2)
 
-						extCommit, err := cmttypes.MakeExtCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSignerArr, s.now, false)
-						misbehaviour.Header1.Commit = extCommit.ToCommit().ToProto()
-						return err
-					},
-					errors.New("validator set did not commit to header"),
-				},
-				{
-					"header 2 doesn't have 2/3 majority",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now, bothValSet, bothValSet, s.valSet, bothSigners),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error {
-						// voteSet contains only altVal which is less than 2/3 of total power (height/1height)
-						wrongVoteSet := cmttypes.NewVoteSet(chainID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), 1, cmtproto.PrecommitType, altValSet)
-						blockID, err := cmttypes.BlockIDFromProto(&misbehaviour.Header2.Commit.BlockID)
-						if err != nil {
-							return err
-						}
+					signatures = []tendermint.CommitSig{
+						{
+							BlockIDFlag:      tendermint.BlockIDFlagCommit,
+							ValidatorAddress: valset.Validators[0].Address,
+							Timestamp:        commitTimestamp,
+							Signature:        []byte("\xcb\x8f\x2f\x54\x34\xe9\xc7\xa5\x3e\xd4\x4b\x1d\x37\xbd\x69\xeb\x75\x01\x12\xbd\x11\x3b\x5d\xb1\x7f\xe1\xce\xd6\x8f\xd6\xf2\x79\x49\xd8\x20\xb3\x8c\x74\x35\xc5\x36\x37\x03\x21\x8c\x38\x2e\xf3\x1c\xd1\xfb\xee\xd1\xee\x8c\x0e\x16\x0e\x06\x0f\xdb\x4f\xbe\x03"),
+						},
+						{
+							BlockIDFlag:      tendermint.BlockIDFlagCommit,
+							ValidatorAddress: valset.Validators[1].Address,
+							Timestamp:        commitTimestamp,
+							Signature:        []byte("\xde\x94\xa7\x23\x40\x3d\xa4\xb6\x92\xb0\x39\xdc\x88\xb7\x22\x0d\x5d\x1f\x3e\xb0\xab\x09\xb8\x48\x4e\x5b\xcc\x68\xe1\xcf\x06\xff\xc5\x67\xe9\x5d\x6a\xd6\xd1\x5f\xf7\xf0\x28\x3f\x18\xd9\xf4\xc7\xd4\xd2\x30\x73\xbb\xe4\xde\x4b\xfe\x71\xd3\x05\x75\xe2\xf8\x0f"),
+						},
+					}
+				)
 
-						extCommit, err := cmttypes.MakeExtCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSignerArr, s.now, false)
-						misbehaviour.Header2.Commit = extCommit.ToCommit().ToProto()
-						return err
-					},
-					errors.New("validator set did not commit to header"),
-				},
-				{
-					"validators sign off on wrong commit",
-					&Misbehaviour{
-						Header1:  s.header,
-						Header2:  s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now, bothValSet, bothValSet, s.valSet, bothSigners),
-						ClientId: clientID,
-					},
-					func(misbehaviour *Misbehaviour) error {
-						tmBlockID := ibctesting.MakeBlockID(tmhash.Sum([]byte("other_hash")), 3, tmhash.Sum([]byte("other_partset")))
-						misbehaviour.Header2.Commit.BlockID = tmBlockID.ToProto()
-						return nil
-					},
-					errors.New("header 2 failed validation"),
-				},
-		*/
+				misbehaviour.Header2 = newMsgHeader(
+					chainID, newTimestamp, apphash, newHeight, trustedHeight, valset,
+					nextValset, trustedValset, signatures,
+				)
+			},
+			expErr: "Header1 height is less than Header2 height (0/3 < 0/4)",
+		},
+		{
+			name: "invalid misbehabiour: header1 doesnt have 2/3 majority",
+			malleate: func() {
+				misbehaviour.Header1.Commit.Signatures[0] = tendermint.CommitSig{
+					BlockIDFlag: tendermint.BlockIDFlagAbsent,
+				}
+			},
+			expErr: "invalid header1 commit: validator set did not commit to header: not enough voting power, got 10, needed >13",
+		},
+		{
+			name: "invalid misbehabiour: header2 doesnt have 2/3 majority",
+			malleate: func() {
+				misbehaviour.Header2.Commit.Signatures[0] = tendermint.CommitSig{
+					BlockIDFlag: tendermint.BlockIDFlagAbsent,
+				}
+			},
+			expErr: "invalid header2 commit: validator set did not commit to header: not enough voting power, got 10, needed >13",
+		},
+		{
+			name: "invalid misbehabiour: header1 wrong signature",
+			malleate: func() {
+				misbehaviour.Header1.Commit.Signatures[0].Timestamp = time.Now()
+			},
+			expErr: "invalid header1 commit: validator set did not commit to header: verify signature fail (#0)",
+		},
+		{
+			name: "invalid misbehabiour: header2 wrong signature",
+			malleate: func() {
+				misbehaviour.Header2.Commit.Signatures[0].Timestamp = time.Now()
+			},
+			expErr: "invalid header2 commit: validator set did not commit to header: verify signature fail (#0)",
+		},
 	}
 
 	for _, tt := range tests {
