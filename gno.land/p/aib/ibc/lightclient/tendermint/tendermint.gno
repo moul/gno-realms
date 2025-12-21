@@ -105,7 +105,12 @@ func (tm *TMLightClient) UpdateStateOnMisbehaviour(clientMsg lightclient.ClientM
 
 // Implements lightclient.Interface
 func (tm *TMLightClient) UpdateState(clientMsg lightclient.ClientMessage) []types.Height {
-	msg := clientMsg.(*MsgHeader)
+	msg, ok := clientMsg.(*MsgHeader)
+	if !ok {
+		// clientMsg is an invalid Misbehaviour, no update necessary
+		return []types.Height{}
+	}
+
 	// check for duplicate update
 	msgHeight := msg.GetHeight()
 	if tm.ConsensusStateByHeight.Has(msgHeight.String()) {
