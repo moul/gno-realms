@@ -127,10 +127,10 @@ func (tm TMLightClient) verifyMisbehavior(misbehaviour *Misbehaviour) error {
 
 	// Check the validity of the two conflicting headers against their respective
 	// trusted consensus states.
-	if err := tm.checkMisbehaviourHeader(tmConsensusState1, misbehaviour.Header1, time.Now()); err != nil {
+	if err := tm.checkMisbehaviourHeader(tmConsensusState1, misbehaviour.Header1); err != nil {
 		return ufmt.Errorf("verifying Header1 in Misbehaviour failed: %v", err)
 	}
-	if err := tm.checkMisbehaviourHeader(tmConsensusState2, misbehaviour.Header2, time.Now()); err != nil {
+	if err := tm.checkMisbehaviourHeader(tmConsensusState2, misbehaviour.Header2); err != nil {
 		return ufmt.Errorf("verifying Header2 in Misbehaviour failed: %v", err)
 	}
 
@@ -279,9 +279,7 @@ func (tm TMLightClient) verifyChainedMembershipProof(root []byte,
 
 // checkMisbehaviourHeader checks that a MsgHeader in Misbehaviour is valid
 // misbehaviour given a trusted ConsensusState.
-func (tm TMLightClient) checkMisbehaviourHeader(
-	consState *ConsensusState, msg *MsgHeader, currentTimestamp time.Time,
-) error {
+func (tm TMLightClient) checkMisbehaviourHeader(consState *ConsensusState, msg *MsgHeader) error {
 	// check the trusted fields for the header against ConsensusState
 	if err := checkTrustedHeader(msg, consState); err != nil {
 		return err
@@ -289,10 +287,11 @@ func (tm TMLightClient) checkMisbehaviourHeader(
 
 	// assert that the age of the trusted consensus state is not older than the
 	// trusting period
-	if currentTimestamp.Sub(consState.Timestamp) >= tm.ClientState.TrustingPeriod {
+	consensusAge := time.Now().Sub(consState.Timestamp)
+	if consensusAge >= tm.ClientState.TrustingPeriod {
 		return ufmt.Errorf(
-			"current timestamp minus the latest consensus state timestamp is greater than or equal to the trusting period (%d >= %d)",
-			currentTimestamp.Sub(consState.Timestamp), tm.ClientState.TrustingPeriod,
+			"current timestamp minus the latest consensus state timestamp is greater than or equal to the trusting period (%s >= %s)",
+			consensusAge, tm.ClientState.TrustingPeriod,
 		)
 	}
 
