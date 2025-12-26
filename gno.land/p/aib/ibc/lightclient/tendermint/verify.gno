@@ -304,8 +304,10 @@ func (tm TMLightClient) checkMisbehaviourHeader(consState *ConsensusState, msg *
 		chainID, _ = types.SetRevisionNumber(chainID, msg.GetHeight().RevisionNumber)
 	}
 
-	// - ValidatorSet must have TrustLevel similarity with trusted FromValidatorSet
-	// - ValidatorSets on both headers are valid given the last trusted ValidatorSet
+	// - ValidatorSet must have TrustLevel similarity with trusted
+	// FromValidatorSet
+	// - ValidatorSets on both headers are valid given the last trusted
+	// ValidatorSet
 	var (
 		tl = tm.ClientState.TrustLevel
 		// TODO protect against overflows

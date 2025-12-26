@@ -106,6 +106,7 @@ func main() {
 			nextValset, trustedValset, signatures,
 		)
 	}
+	// Remove one signature
 	header2.Commit.Signatures[0] = tendermint.CommitSig{
 		BlockIDFlag: tendermint.BlockIDFlagAbsent,
 	}
