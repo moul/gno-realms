@@ -78,8 +78,6 @@ func (tm *TMLightClient) CheckForMisbehaviour(clientMsg lightclient.ClientMessag
 		// greater than previous consensus state time if previous consensus state
 		// is not before current consensus state return true
 		if prevOk && !prevCons.Timestamp.Before(consState.Timestamp) {
-			// TODO add test
-			println("prev is not before")
 			return true
 		}
 		// if next consensus state exists, check consensus state time is less than
