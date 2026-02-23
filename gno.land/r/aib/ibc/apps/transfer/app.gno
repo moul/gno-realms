@@ -114,7 +114,7 @@ func (a *App) OnSendPacket(
 		// Ensure that sent coin matches the FungibleTokenPacketData
 		sent := cur.Coins()
 		if len(sent) != 1 || sent[0].Amount == 0 {
-			panic("OnSendPacket requires one non-zero coin to be sent")
+			return ufmt.Errorf("OnSendPacket requires one non-zero coin to be sent")
 		}
 		if coin.Denom != sent[0].Denom || coin.Amount != sent[0].Amount {
 			return ufmt.Errorf(

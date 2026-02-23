@@ -11,7 +11,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// Transfer is a entry point function for sending a native token to an other
+// Transfer is an entry point function for sending a native token to another
 // chain using the IBC protocol. The token must be sent by the caller using the
 // send field of the transaction.
 func Transfer(cur realm, clientID, receiver string, timeoutTimestamp int64) (
@@ -24,14 +24,14 @@ func Transfer(cur realm, clientID, receiver string, timeoutTimestamp int64) (
 	return transfer(clientID, receiver, sent[0].Denom, sent[0].Amount, timeoutTimestamp)
 }
 
-// TransferGRC20 can be used to send a GRC20 token to an other chain using the
+// TransferGRC20 can be used to send a GRC20 token to another chain using the
 // IBC protocol.
-// That token can be an IBC voucher (minted when received a token from an other
+// That token can be an IBC voucher (minted when received a token from another
 // chain), or any other GRC20 token.
 func TransferGRC20(cur realm, clientID, receiver, denom string, amount, timeoutTimestamp int64) (
 	packet types.MsgSendPacket, sequence uint64,
 ) {
-	// Transfer GRC20 to the app
+	// Validate that the GRC20 token exists and resolve the denom path.
 	inst := getGRC20(denom)
 	if inst == nil {
 		panic(ufmt.Errorf("GRC20 token not found for denom %s", denom))

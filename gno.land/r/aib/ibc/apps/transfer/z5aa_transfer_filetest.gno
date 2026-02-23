@@ -29,7 +29,6 @@ func main() {
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
 
 	signer := runtime.OriginCaller()
-	println("SIGNER", signer)
 
 	// Call recvPacket as a setup because we need the ibc denom to be in the
 	// store. recvPacket will mint 100ibc/abc tokens and transfer them to signer
@@ -131,7 +130,6 @@ func recvPacket(clientID, counterpartyID string, trustedHeight types.Height, rec
 }
 
 // Output:
-// SIGNER g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm
 // Payload proto: Cgd1cGhvdG9uEgMxMDAaCmF0b25lMXVzZXIiKGcxd3ltdTQ3ZHJocjBrdXEyMDk4bTc5Mmx5dGd0ajJueXg3N3lyc20=
 //
 // receiver GRC20 balance after RecvPacket: 100
