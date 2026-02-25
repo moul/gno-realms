@@ -71,6 +71,74 @@ func buildUnsignedTx(msgs []proto.Message, registerInterfaces ...func(codectypes
 	return string(txJSON)
 }
 
+// recoverGnoKey recovers a key in gnokey inside the gno container from a mnemonic.
+// If the key already exists, it is a no-op.
+func recoverGnoKey(containerID, keyName, mnemonic string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	// gnokey add --recover reads: mnemonic first, then passphrase (empty = unencrypted)
+	stdin := fmt.Sprintf("%s\n\n", mnemonic)
+	_, stderr, err := dockerExecStdin(ctx, containerID, stdin,
+		"gnokey", "add", keyName, "--recover", "--insecure-password-stdin", "--force")
+	if err != nil {
+		return fmt.Errorf("gnokey add --recover: %w: %s", err, stderr)
+	}
+	return nil
+}
+
+// gnoKeyAddress returns the address associated with a gnokey key name.
+func gnoKeyAddress(containerID, keyName string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stdout, stderr, err := dockerExec(ctx, containerID, "gnokey", "list")
+	if err != nil {
+		return "", fmt.Errorf("gnokey list: %w: %s", err, stderr)
+	}
+	// Output format: "0. keyname (local) - addr: g1... pub: gpub1..."
+	for _, line := range strings.Split(stdout, "\n") {
+		if strings.Contains(line, keyName) {
+			idx := strings.Index(line, "addr: ")
+			if idx >= 0 {
+				rest := line[idx+len("addr: "):]
+				addr := strings.Fields(rest)[0]
+				return addr, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("key %s not found in gnokey list output: %s", keyName, stdout)
+}
+
+// signAndBroadcastGnoCall executes a gnokey maketx call inside the gno container.
+func signAndBroadcastGnoCall(containerID, chainID, keyName, pkgPath, funcName, sendCoins string, args ...string) error {
+	cmdArgs := []string{
+		"gnokey", "maketx", "call",
+		"-pkgpath", pkgPath,
+		"-func", funcName,
+		"-gas-fee", "1000000ugnot",
+		"-gas-wanted", "90000000",
+		"-broadcast",
+		"-chainid", chainID,
+		"-remote", "localhost:26657",
+		"-insecure-password-stdin",
+	}
+	if sendCoins != "" {
+		cmdArgs = append(cmdArgs, "-send", sendCoins)
+	}
+	for _, arg := range args {
+		cmdArgs = append(cmdArgs, "-args", arg)
+	}
+	cmdArgs = append(cmdArgs, keyName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	stdout, stderr, err := dockerExecStdin(ctx, containerID, "\n", cmdArgs...)
+	if err != nil {
+		return fmt.Errorf("gnokey maketx call: %w: stdout=%s stderr=%s", err, stdout, stderr)
+	}
+	return nil
+}
+
 // signAndBroadcastAtomOneTx signs and broadcasts messages on the AtomOne chain.
 // It returns the tx hash.
 func signAndBroadcastAtomOneTx(containerID, chainID string, msgs ...proto.Message) (string, error) {

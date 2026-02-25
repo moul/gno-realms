@@ -15,6 +15,7 @@ type E2ETestSuite struct {
 	atomoneClientID  string
 	gnoClientID      string
 	senderAddress    string
+	gnoSenderAddress string
 	atomoneContainer string
 	gnoContainer     string
 }
@@ -53,6 +54,13 @@ func (s *E2ETestSuite) SetupSuite() {
 	s.senderAddress = strings.TrimSpace(stdout)
 	s.Require().NotEmpty(s.senderAddress)
 	s.T().Logf("Sender address: %s", s.senderAddress)
+
+	// Recover test key in gnokey for Gno→AtomOne transfers
+	err = recoverGnoKey(s.gnoContainer, "test", cfg.TestMnemonic)
+	s.Require().NoError(err, "recover gnokey test key")
+	s.gnoSenderAddress, err = gnoKeyAddress(s.gnoContainer, "test")
+	s.Require().NoError(err, "get gnokey test address")
+	s.T().Logf("Gno sender address: %s", s.gnoSenderAddress)
 
 	// Wait for IBC clients
 	s.waitForIBCClients()

@@ -148,6 +148,34 @@ func queryGRC20Balance(containerID, ibcHash, addr string) (int64, error) {
 	return bal, nil
 }
 
+// queryGnoBalance returns the native coin balance for a denom on Gno.
+func queryGnoBalance(containerID, addr, denom string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stdout, stderr, err := dockerExec(ctx, containerID,
+		"gnokey", "query", "bank/balances/"+addr,
+		"-remote", "localhost:26657",
+	)
+	if err != nil {
+		return 0, fmt.Errorf("gnokey query bank/balances: %w: %s", err, stderr)
+	}
+	// Output: "height: N\ndata: \"100ugnot\"\n"
+	const prefix = "data: "
+	idx := strings.Index(stdout, prefix)
+	if idx < 0 {
+		return 0, fmt.Errorf("unexpected output (no 'data: ' prefix): %s", stdout)
+	}
+	data := strings.Trim(strings.TrimSpace(stdout[idx+len(prefix):]), "\"")
+	// data is like "9988968600ugnot" or "100ugnot,50foo"
+	for _, coin := range strings.Split(data, ",") {
+		if strings.HasSuffix(coin, denom) {
+			amountStr := strings.TrimSuffix(coin, denom)
+			return strconv.ParseInt(amountStr, 10, 64)
+		}
+	}
+	return 0, nil
+}
+
 // queryAtomOneBalance returns the balance of a specific denom for an address on AtomOne.
 func queryAtomOneBalance(restURL, addr, denom string) (int64, error) {
 	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s/by_denom?denom=%s", restURL, addr, denom)

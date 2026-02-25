@@ -11,7 +11,6 @@ import (
 type Config struct {
 	TestMnemonic   string
 	AtomoneChainID string
-	AtomoneDenom   string
 	GnoChainID     string
 	GnoReceiver    string
 	AtomoneRPC     string
@@ -27,7 +26,6 @@ func LoadConfig() (*Config, error) {
 	cfg := &Config{
 		TestMnemonic:   os.Getenv("TEST_MNEMONIC"),
 		AtomoneChainID: os.Getenv("ATOMONE_CHAIN_ID"),
-		AtomoneDenom:   os.Getenv("ATOMONE_DENOM"),
 		GnoChainID:     os.Getenv("GNO_CHAIN_ID"),
 		GnoReceiver:    os.Getenv("GNO_RECEIVER"),
 		AtomoneRPC:     os.Getenv("ATOMONE_RPC"),
