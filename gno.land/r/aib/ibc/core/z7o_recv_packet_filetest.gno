@@ -148,7 +148,6 @@ func main() {
 // {"sequence":"1","data":"4vsw3796verKgtQmU00rOp1URN0qh/oW04t3uhoTztc="}
 //
 // ----------- app report
-// balance:
 // OnSendPacket (0)
 // OnRecvPacket (1)
 // - sourceClient: 07-tendermint-42
@@ -167,7 +166,6 @@ func main() {
 // res: (1 gno.land/p/aib/ibc/types.ResponseResultType)
 //
 // ----------- app report
-// balance:
 // OnSendPacket (0)
 // OnRecvPacket (1)
 // - sourceClient: 07-tendermint-42

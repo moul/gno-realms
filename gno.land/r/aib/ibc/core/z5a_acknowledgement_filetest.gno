@@ -2,7 +2,6 @@
 package main
 
 import (
-	"chain/banker"
 	"encoding/hex"
 	"time"
 
@@ -44,9 +43,8 @@ func main() {
 			Version:         "v1",
 		}},
 	}
-	banker := banker.NewBanker(banker.BankerTypeOriginSend)
 
-	sequence := core.SendPacket(cross, banker, sendPacket)
+	sequence := core.SendPacket(cross, sendPacket)
 
 	// Acknowledge the packet
 	specs := ics23.IavlSpec()
@@ -146,9 +144,7 @@ func main() {
 // {"error":"sequence 1 not found"}
 //
 // ----------- app report
-// balance:
 // OnSendPacket (1)
-// - spendable: 0ugnot
 // - sourceClient: 07-tendermint-1
 // - destinationClient: 07-tendermint-42
 // - sequence: 1
@@ -177,9 +173,7 @@ func main() {
 // res: (1 gno.land/p/aib/ibc/types.ResponseResultType)
 //
 // ----------- app report
-// balance:
 // OnSendPacket (1)
-// - spendable: 0ugnot
 // - sourceClient: 07-tendermint-1
 // - destinationClient: 07-tendermint-42
 // - sequence: 1
