@@ -24,8 +24,7 @@ func (s *E2ETestSuite) TestIBCTransferAtomOneToGno() {
 	)
 	s.T().Logf("Broadcasting MsgSendPacket: %s %s → %s", transferAmount, denom, receiver)
 
-	txHash, err := signAndBroadcastAtomOneTx(s.atomoneContainer, s.cfg.AtomoneChainID, msg)
-	r.NoError(err)
+	txHash := s.signAndBroadcastAtomOneTx(msg)
 	s.T().Logf("IBC transfer submitted: txhash=%s", txHash)
 
 	// Verify sender balance decreased (tokens escrowed for IBC transfer)
@@ -76,12 +75,11 @@ func (s *E2ETestSuite) TestIBCTransferGnoToAtomOne() {
 
 	s.T().Logf("Broadcasting Gno Transfer: %d %s → %s", transferAmount, denom, receiver)
 
-	err = signAndBroadcastGnoCall(s.gnoContainer, s.cfg.GnoChainID, "test",
+	s.signAndBroadcastGnoCall("test",
 		"gno.land/r/aib/ibc/apps/transfer", "Transfer",
 		fmt.Sprintf("%d%s", transferAmount, denom),
 		s.gnoClientID, receiver, timeout,
 	)
-	r.NoError(err)
 	s.T().Log("Gno transfer submitted")
 
 	// Verify sender balance decreased (tokens escrowed for IBC transfer)
@@ -102,7 +100,7 @@ func (s *E2ETestSuite) TestIBCTransferGnoToAtomOne() {
 
 	// Record balance before relay
 	beforeAtomOneBalance, _ := queryAtomOneBalance(s.cfg.AtomoneREST, receiver, ibcDenom)
-	s.T().Logf("AtomOne IBC balance before: %d", beforeGnoBalance)
+	s.T().Logf("AtomOne IBC balance before: %d", beforeAtomOneBalance)
 
 	// Wait for IBC voucher token on AtomOne
 	s.T().Log("Waiting for IBC voucher token on AtomOne...")
@@ -116,5 +114,5 @@ func (s *E2ETestSuite) TestIBCTransferGnoToAtomOne() {
 		return balance >= beforeAtomOneBalance+transferAmount
 	}, 2*time.Minute, 3*time.Second, "IBC voucher balance not received on AtomOne")
 
-	s.T().Logf("AtomOne IBC balance verified: %d (before: %d, expected +%d)", balance, beforeGnoBalance, transferAmount)
+	s.T().Logf("AtomOne IBC balance verified: %d (before: %d, expected +%d)", balance, beforeAtomOneBalance, transferAmount)
 }

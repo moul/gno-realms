@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -56,10 +57,8 @@ func (s *E2ETestSuite) SetupSuite() {
 	s.T().Logf("Sender address: %s", s.senderAddress)
 
 	// Recover test key in gnokey for Gno→AtomOne transfers
-	err = recoverGnoKey(s.gnoContainer, "test", cfg.TestMnemonic)
-	s.Require().NoError(err, "recover gnokey test key")
-	s.gnoSenderAddress, err = gnoKeyAddress(s.gnoContainer, "test")
-	s.Require().NoError(err, "get gnokey test address")
+	s.recoverGnoKey("test", cfg.TestMnemonic)
+	s.gnoSenderAddress = s.gnoKeyAddress("test")
 	s.T().Logf("Gno sender address: %s", s.gnoSenderAddress)
 
 	// Wait for IBC clients
@@ -97,4 +96,35 @@ func (s *E2ETestSuite) waitForIBCClients() {
 		return err == nil
 	}, 1*time.Minute, 2*time.Second, "counterparty not registered on Gno in time")
 	s.T().Log("Counterparty registered")
+}
+
+// recoverGnoKey recovers a key in gnokey inside the gno container from a mnemonic.
+func (s *E2ETestSuite) recoverGnoKey(keyName, mnemonic string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	// gnokey add --recover reads: mnemonic first, then passphrase (empty = unencrypted)
+	stdin := fmt.Sprintf("%s\n\n", mnemonic)
+	_, stderr, err := dockerExecStdin(ctx, s.gnoContainer, stdin,
+		"gnokey", "add", keyName, "--recover", "--insecure-password-stdin", "--force")
+	s.Require().NoError(err, "gnokey add --recover: %s", stderr)
+}
+
+// gnoKeyAddress returns the address associated with a gnokey key name.
+func (s *E2ETestSuite) gnoKeyAddress(keyName string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stdout, stderr, err := dockerExec(ctx, s.gnoContainer, "gnokey", "list")
+	s.Require().NoError(err, "gnokey list: %s", stderr)
+	// Output format: "0. keyname (local) - addr: g1... pub: gpub1..."
+	for _, line := range strings.Split(stdout, "\n") {
+		if strings.Contains(line, keyName) {
+			idx := strings.Index(line, "addr: ")
+			if idx >= 0 {
+				rest := line[idx+len("addr: "):]
+				return strings.Fields(rest)[0]
+			}
+		}
+	}
+	s.Require().Fail("key not found", "key %s not found in gnokey list output: %s", keyName, stdout)
+	return ""
 }
