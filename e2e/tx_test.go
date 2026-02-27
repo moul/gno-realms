@@ -48,7 +48,7 @@ func (s *E2ETestSuite) signAndBroadcastGnoCall(keyName, pkgPath, funcName, sendC
 // signAndBroadcastAtomOneTx signs and broadcasts messages on the AtomOne chain.
 // It retries on account sequence mismatch (the relayer shares the same account).
 // It returns the tx hash.
-func (s *E2ETestSuite) signAndBroadcastAtomOneTx(msgs ...proto.Message) string {
+func (s *E2ETestSuite) signAndBroadcastAtomOneTx(signer string, msgs ...proto.Message) string {
 	unsignedTx := buildUnsignedTx(msgs, channeltypesv2.RegisterInterfaces)
 
 	ctx := context.Background()
@@ -61,7 +61,7 @@ func (s *E2ETestSuite) signAndBroadcastAtomOneTx(msgs ...proto.Message) string {
 	// Retry sign+broadcast on sequence mismatch (relayer may race with us)
 	const maxRetries = 5
 	for attempt := range maxRetries {
-		txHash, err := s.trySignAndBroadcast(ctx)
+		txHash, err := s.trySignAndBroadcast(ctx, signer)
 		if err == nil {
 			return txHash
 		}
@@ -75,13 +75,13 @@ func (s *E2ETestSuite) signAndBroadcastAtomOneTx(msgs ...proto.Message) string {
 	return ""
 }
 
-func (s *E2ETestSuite) trySignAndBroadcast(ctx context.Context) (string, error) {
+func (s *E2ETestSuite) trySignAndBroadcast(ctx context.Context, signer string) (string, error) {
 	// Sign
 	signCtx, signCancel := context.WithTimeout(ctx, 30*time.Second)
 	defer signCancel()
 	_, stderr, err := dockerExec(signCtx, s.atomoneContainer,
 		"atomoned", "tx", "sign", "/tmp/unsigned_tx.json",
-		"--from", "validator",
+		"--from", signer,
 		"--chain-id", s.cfg.AtomoneChainID,
 		"--keyring-backend", "test",
 		"--home", "/root/.atomone",
@@ -119,8 +119,10 @@ func (s *E2ETestSuite) trySignAndBroadcast(ctx context.Context) (string, error) 
 }
 
 // buildMsgSendPacket creates a MsgSendPacket for an IBC v2 token transfer.
-func buildMsgSendPacket(sourceClient, sender, receiver, denom, amount string, timeoutTimestamp int64) *channeltypesv2.MsgSendPacket {
-	packetData := transfertypes.NewFungibleTokenPacketData(denom, amount, sender, receiver, "")
+func buildMsgSendPacket(sourceClient, sender, receiver, denom string, amount, timeoutTimestamp int64) *channeltypesv2.MsgSendPacket {
+	packetData := transfertypes.NewFungibleTokenPacketData(
+		denom, fmt.Sprint(amount), sender, receiver, "",
+	)
 	bz, err := proto.Marshal(&packetData)
 	if err != nil {
 		panic(fmt.Sprintf("marshal FungibleTokenPacketData: %v", err))
