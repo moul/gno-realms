@@ -45,9 +45,9 @@ func (s *E2ETestSuite) signAndBroadcastGnoCall(keyName, pkgPath, funcName, sendC
 	s.Require().NoError(err, "gnokey maketx call: stdout=%s stderr=%s", stdout, stderr)
 }
 
-// signAndBroadcastAtomOneTx signs and broadcasts messages on the AtomOne chain.
-// It returns the tx hash.
-func (s *E2ETestSuite) signAndBroadcastAtomOneTx(signer string, msgs ...proto.Message) string {
+// signAndBroadcastAtomOneTx signs, broadcasts, and waits for tx confirmation
+// on the AtomOne chain.
+func (s *E2ETestSuite) signAndBroadcastAtomOneTx(signer string, msgs ...proto.Message) {
 	unsignedTx := buildUnsignedTx(msgs, channeltypesv2.RegisterInterfaces)
 
 	ctx := context.Background()
@@ -81,15 +81,35 @@ func (s *E2ETestSuite) signAndBroadcastAtomOneTx(signer string, msgs ...proto.Me
 	)
 	s.Require().NoError(err, "broadcast tx: %s", stderr)
 
-	var txResult struct {
-		Code   int    `json:"code"`
+	var bcastResult struct {
 		TxHash string `json:"txhash"`
-		RawLog string `json:"raw_log"`
 	}
-	err = json.Unmarshal([]byte(strings.TrimSpace(stdout)), &txResult)
+	err = json.Unmarshal([]byte(strings.TrimSpace(stdout)), &bcastResult)
 	s.Require().NoError(err, "parse broadcast result: %s", stdout)
-	s.Require().Equal(0, txResult.Code, "tx failed: %s", txResult.RawLog)
-	return txResult.TxHash
+	s.Require().NotEmpty(bcastResult.TxHash, "broadcast returned empty txhash")
+
+	// Query tx to confirm execution
+	s.Require().Eventually(func() bool {
+		qCtx, qCancel := context.WithTimeout(ctx, 10*time.Second)
+		defer qCancel()
+		stdout, _, err := dockerExec(qCtx, s.atomoneContainer,
+			"atomoned", "q", "tx", bcastResult.TxHash,
+			"--node", "tcp://localhost:26657",
+			"--output", "json",
+		)
+		if err != nil {
+			return false
+		}
+		var txResult struct {
+			Code   int    `json:"code"`
+			RawLog string `json:"raw_log"`
+		}
+		if err := json.Unmarshal([]byte(strings.TrimSpace(stdout)), &txResult); err != nil {
+			return false
+		}
+		s.Require().Equal(0, txResult.Code, "tx failed: %s", txResult.RawLog)
+		return true
+	}, 30*time.Second, time.Second, "tx %s not confirmed", bcastResult.TxHash)
 }
 
 // buildMsgSendPacket creates a MsgSendPacket for an IBC v2 token transfer.
