@@ -17,7 +17,7 @@ import (
 func Transfer(cur realm, clientID, receiver string, timeoutTimestamp uint64) (
 	packet types.MsgSendPacket, sequence uint64,
 ) {
-	sent := cur.Coins()
+	sent := cur.SentCoins()
 	if len(sent) != 1 || sent[0].Amount == 0 {
 		panic("Transfer requires one non-zero coin to be sent")
 	}
