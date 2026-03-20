@@ -8,7 +8,7 @@ import (
 	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
 	"gno.land/p/aib/ibc/types"
 
-	"gno.land/r/aib/ibc/apps/testing/grc20"
+	"gno.land/r/aib/ibc/apps/testing/grc20test"
 	"gno.land/r/aib/ibc/apps/transfer"
 	"gno.land/r/aib/ibc/core"
 )
@@ -28,20 +28,20 @@ func main() {
 	caller := runtime.OriginCaller()
 
 	// Mint test GRC20 tokens to the caller
-	grc20.Mint(cross, caller, 1000)
+	grc20test.Mint(cross, caller, 1000)
 
 	// Approve the transfer app realm to spend 100 tokens
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
-	grc20.Approve(cross, caller, transferAppAddr, 100)
+	grc20test.Approve(cross, caller, transferAppAddr, 100)
 
 	// grc20reg key for the test token (registered with empty slug)
-	denom := "gno.land/r/aib/ibc/apps/testing/grc20"
+	denom := "gno.land/r/aib/ibc/apps/testing/grc20test"
 
-	println("----------- balance before Transfer:", grc20.BalanceOf(caller))
+	println("----------- balance before Transfer:", grc20test.BalanceOf(caller))
 
 	transfer.TransferGRC20(cross, clientID, "atone1user", denom, 100, uint64(time.Now().Add(time.Hour).Unix()))
 
-	println("----------- balance after Transfer:", grc20.BalanceOf(caller))
+	println("----------- balance after Transfer:", grc20test.BalanceOf(caller))
 }
 
 // Output:
@@ -73,7 +73,7 @@ func main() {
 //     "attrs": [
 //       {
 //         "key": "token",
-//         "value": "gno.land/r/aib/ibc/apps/testing/grc20.TEST"
+//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test.TEST"
 //       },
 //       {
 //         "key": "from",
@@ -95,7 +95,7 @@ func main() {
 //     "attrs": [
 //       {
 //         "key": "token",
-//         "value": "gno.land/r/aib/ibc/apps/testing/grc20.TEST"
+//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test.TEST"
 //       },
 //       {
 //         "key": "owner",
@@ -117,7 +117,7 @@ func main() {
 //     "attrs": [
 //       {
 //         "key": "token",
-//         "value": "gno.land/r/aib/ibc/apps/testing/grc20.TEST"
+//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test.TEST"
 //       },
 //       {
 //         "key": "from",
@@ -173,7 +173,7 @@ func main() {
 //       },
 //       {
 //         "key": "denom",
-//         "value": "gno.land/r/aib/ibc/apps/testing/grc20"
+//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test"
 //       },
 //       {
 //         "key": "amount",

@@ -111,7 +111,7 @@ func (a *App) OnSendPacket(
 		}
 	} else if isGRC20(token.Denom.Base) {
 		// Non-IBC GRC20 token: already escrowed by TransferGRC20 via
-		// CallerTeller().TransferFrom(). Just track the escrow amount.
+		// RealmTeller().TransferFrom(). Just track the escrow amount.
 		addEscrowForDenom(coin)
 	} else {
 		// Native token: ensure that sent coin matches the FungibleTokenPacketData

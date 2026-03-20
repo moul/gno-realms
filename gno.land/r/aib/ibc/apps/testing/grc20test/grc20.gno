@@ -1,5 +1,5 @@
-// Package grc20 provides a test GRC20 token for IBC transfer testing.
-package grc20
+// Package grc20test provides a test GRC20 token for IBC transfer testing.
+package grc20test
 
 import (
 	"gno.land/p/demo/tokens/grc20"
