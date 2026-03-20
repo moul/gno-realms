@@ -42,9 +42,9 @@ func (a *App) OnSendPacket(
 	sequence uint64,
 	payload types.Payload,
 ) error {
-	// TODO do we need to ensure that caller is aib/ibc/core realm ?
 	// TODO add parameter to disable the app
 	// TODO add parameter to block sender addr
+	// TODO protect against direct core.SendPacket calls with GRC20 alias denoms (see #28)
 
 	// Enforce that the source and destination portIDs are the same and equal to
 	// the transfer portID.

@@ -32,6 +32,9 @@ func Transfer(cur realm, clientID, receiver string, timeoutTimestamp uint64) (
 func TransferGRC20(cur realm, clientID, receiver, denom string, amount int64, timeoutTimestamp uint64) (
 	packet types.MsgSendPacket, sequence uint64,
 ) {
+	if sent := cur.SentCoins(); len(sent) > 0 {
+		panic("TransferGRC20 must not include native coins")
+	}
 	if strings.HasPrefix(denom, "ibc/") {
 		// IBC voucher: validate it exists and resolve the denom path.
 		inst := getGRC20(denom)
