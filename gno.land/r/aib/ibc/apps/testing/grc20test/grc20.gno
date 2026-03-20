@@ -15,7 +15,8 @@ func init() {
 	grc20reg.Register(cross, Token, "")
 }
 
-// Mint tokens to the specified address. Unrestricted for testing purposes.
+// Mint tokens to the specified address.
+// WARNING: test-only, no caller authorization — do not use as a pattern for production.
 func Mint(cur realm, to address, amount int64) {
 	if err := ledger.Mint(to, amount); err != nil {
 		panic(err)
@@ -24,6 +25,7 @@ func Mint(cur realm, to address, amount int64) {
 
 // Approve sets an allowance for spender to spend owner's tokens.
 // Uses PrivateLedger directly to allow explicit owner specification.
+// WARNING: test-only, no caller authorization — do not use as a pattern for production.
 func Approve(cur realm, owner, spender address, amount int64) {
 	if err := ledger.Approve(owner, spender, amount); err != nil {
 		panic(err)
