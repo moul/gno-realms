@@ -117,7 +117,7 @@ func (a *App) OnSendPacket(
 		// Native token: ensure that sent coin matches the FungibleTokenPacketData
 		sent := cur.SentCoins()
 		if len(sent) != 1 || sent[0].Amount == 0 {
-			return ufmt.Errorf("OnSendPacket requires one non-zero coin to be sent")
+			return ufmt.Errorf("OnSendPacket requires one non-zero coin to be sent for native token transfer")
 		}
 		if coin.Denom != sent[0].Denom || coin.Amount != sent[0].Amount {
 			return ufmt.Errorf(
@@ -229,7 +229,11 @@ func (a *App) OnRecvPacket(
 
 		coin := chain.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-		ackErr = unescrow(data.Receiver, coin)
+		if isGRC20Alias(coin.Denom) {
+			ackErr = unescrowGRC20(data.Receiver, coin)
+		} else {
+			ackErr = unescrowNative(data.Receiver, coin)
+		}
 		if ackErr != nil {
 			ack = types.NewErrorAppAcknowledgement(ackErr)
 			return types.RecvPacketResult{Status: types.PacketStatus_Failure}

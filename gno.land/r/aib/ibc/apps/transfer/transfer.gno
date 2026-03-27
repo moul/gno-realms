@@ -104,43 +104,47 @@ func refundPacketToken(sourcePort, sourceClient, sender string, token Token) err
 		if err := inst.ledger.Mint(address(sender), coin.Amount); err != nil {
 			return ufmt.Errorf("re-mint voucher error: %v", err)
 		}
+	} else if isGRC20Alias(coin.Denom) {
+		// Non-IBC GRC20: return escrowed tokens to sender
+		if err := unescrowGRC20(sender, coin); err != nil {
+			return err
+		}
 	} else {
-		if err := unescrow(sender, coin); err != nil {
+		// Native: return escrowed coins to sender
+		if err := unescrowNative(sender, coin); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// unescrow sends the specified amount of tokens from the realm escrow back to
-// the original sender. It handles both native coins (via banker) and non-IBC
-// GRC20 tokens (via RealmTeller).
-func unescrow(receiver string, coin chain.Coin) error {
-	if isGRC20Alias(coin.Denom) {
-		// Non-IBC GRC20 token: resolve alias to grc20reg key and transfer
-		// from escrow back to receiver.
-		denomKey := resolveGRC20Alias(coin.Denom)
-		token := grc20reg.Get(denomKey)
-		if token == nil {
-			return ufmt.Errorf("GRC20 token %s not found in grc20reg", denomKey)
-		}
-		teller := token.RealmTeller()
-		if err := teller.Transfer(address(receiver), coin.Amount); err != nil {
-			return ufmt.Errorf("unescrow GRC20 %s error: %v", denomKey, err)
-		}
-	} else {
-		// Native coin: send from realm escrow via banker
-		var (
-			// TODO no app/clientID specific escrow address ?
-			from   = runtime.CurrentRealm().Address()
-			to     = address(receiver)
-			amount = chain.NewCoins(coin)
-			banker = banker.NewBanker(banker.BankerTypeRealmSend)
-		)
-		banker.SendCoins(from, to, amount)
+// unescrowGRC20 resolves the GRC20 alias and transfers the escrowed tokens
+// back to the receiver via the token's RealmTeller.
+func unescrowGRC20(receiver string, coin chain.Coin) error {
+	denomKey := resolveGRC20Alias(coin.Denom)
+	token := grc20reg.Get(denomKey)
+	if token == nil {
+		return ufmt.Errorf("GRC20 token %s not found in grc20reg", denomKey)
 	}
-
+	teller := token.RealmTeller()
+	if err := teller.Transfer(address(receiver), coin.Amount); err != nil {
+		return ufmt.Errorf("unescrow GRC20 %s error: %v", denomKey, err)
+	}
 	subEscrowForDenom(coin)
+	return nil
+}
 
+// unescrowNative sends the escrowed native coins back to the receiver via
+// the banker.
+func unescrowNative(receiver string, coin chain.Coin) error {
+	var (
+		// TODO no app/clientID specific escrow address ?
+		from   = runtime.CurrentRealm().Address()
+		to     = address(receiver)
+		amount = chain.NewCoins(coin)
+		banker = banker.NewBanker(banker.BankerTypeRealmSend)
+	)
+	banker.SendCoins(from, to, amount)
+	subEscrowForDenom(coin)
 	return nil
 }
