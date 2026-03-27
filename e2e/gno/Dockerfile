@@ -28,7 +28,7 @@ ENV GNOROOT=/src/gno
 RUN cd /aibgno && \
     gnodev -empty-blocks -resolver root=. \
         -resolver root=$GNOROOT/examples > /dev/null 2>&1 & \
-    sleep 10 && \
+    while ! wget -q -O /dev/null http://127.0.0.1:26657/status 2>/dev/null; do sleep 1; done && \
     gno clean -modcache=true && \
     cd /aibgno/gno.land/r/aib/ibc/apps/transfer && \
     gno mod download -remote-overrides gno.land=http://127.0.0.1:26657
