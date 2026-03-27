@@ -12,6 +12,7 @@ import (
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/nt/ufmt/v0"
 	"gno.land/r/aib/ibc/core"
+	"gno.land/r/demo/defi/grc20reg"
 )
 
 type App struct{}
@@ -44,7 +45,6 @@ func (a *App) OnSendPacket(
 ) error {
 	// TODO add parameter to disable the app
 	// TODO add parameter to block sender addr
-	// TODO protect against direct core.SendPacket calls with GRC20 alias denoms (see #28)
 
 	// Enforce that the source and destination portIDs are the same and equal to
 	// the transfer portID.
@@ -110,8 +110,17 @@ func (a *App) OnSendPacket(
 			return ufmt.Errorf("burn voucher %s error: %v", coin.String(), err)
 		}
 	} else if isGRC20Alias(token.Denom.Base) {
-		// Non-IBC GRC20 token: already escrowed by TransferGRC20 via
-		// RealmTeller().TransferFrom(). Just track the escrow amount.
+		// Non-IBC GRC20 token: escrow via TransferFrom.
+		// The caller must have approved the transfer app realm address.
+		denomKey := resolveGRC20Alias(token.Denom.Base)
+		grc20Token := grc20reg.Get(denomKey)
+		if grc20Token == nil {
+			return ufmt.Errorf("GRC20 token %s not found in grc20reg", denomKey)
+		}
+		teller := grc20Token.RealmTeller()
+		if err := teller.TransferFrom(address(data.Sender), runtime.CurrentRealm().Address(), coin.Amount); err != nil {
+			return ufmt.Errorf("escrow GRC20 %s error: %v", denomKey, err)
+		}
 		addEscrowForDenom(coin)
 	} else {
 		// Native token: ensure that sent coin matches the FungibleTokenPacketData

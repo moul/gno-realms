@@ -38,4 +38,4 @@ func main() {
 }
 
 // Error:
-// TransferFrom GRC20 error: insufficient balance
+// send packet failed for payload #0 app "transfer": escrow GRC20 gno.land/r/aib/ibc/apps/testing/grc20test error: insufficient balance

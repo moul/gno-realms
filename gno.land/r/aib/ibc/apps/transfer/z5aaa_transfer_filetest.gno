@@ -113,28 +113,6 @@ func main() {
 //     "pkg_path": "gno.land/p/demo/tokens/grc20"
 //   },
 //   {
-//     "type": "Transfer",
-//     "attrs": [
-//       {
-//         "key": "token",
-//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test.TEST"
-//       },
-//       {
-//         "key": "from",
-//         "value": "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm"
-//       },
-//       {
-//         "key": "to",
-//         "value": "g1tp3gk4quumurav4858hjfdy6hxtyffwmnxyr00"
-//       },
-//       {
-//         "key": "value",
-//         "value": "100"
-//       }
-//     ],
-//     "pkg_path": "gno.land/p/demo/tokens/grc20"
-//   },
-//   {
 //     "type": "send_packet",
 //     "attrs": [
 //       {
@@ -159,6 +137,28 @@ func main() {
 //       }
 //     ],
 //     "pkg_path": "gno.land/r/aib/ibc/core"
+//   },
+//   {
+//     "type": "Transfer",
+//     "attrs": [
+//       {
+//         "key": "token",
+//         "value": "gno.land/r/aib/ibc/apps/testing/grc20test.TEST"
+//       },
+//       {
+//         "key": "from",
+//         "value": "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm"
+//       },
+//       {
+//         "key": "to",
+//         "value": "g1tp3gk4quumurav4858hjfdy6hxtyffwmnxyr00"
+//       },
+//       {
+//         "key": "value",
+//         "value": "100"
+//       }
+//     ],
+//     "pkg_path": "gno.land/p/demo/tokens/grc20"
 //   },
 //   {
 //     "type": "ibc_transfer",

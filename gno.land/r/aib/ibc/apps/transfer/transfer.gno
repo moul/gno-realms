@@ -46,18 +46,10 @@ func TransferGRC20(cur realm, clientID, receiver, denom string, amount int64, ti
 		}
 		denom = d.Path()
 	} else {
-		// Non-IBC GRC20 token: escrow via TransferFrom.
-		// The caller must have approved the transfer app realm address
-		// for the given amount before calling this function.
-		token := grc20reg.Get(denom)
-		if token == nil {
+		// Non-IBC GRC20 token: validate it exists and convert to alias.
+		// Escrow via TransferFrom happens in OnSendPacket.
+		if grc20reg.Get(denom) == nil {
 			panic(ufmt.Sprintf("GRC20 token %s not found in grc20reg", denom))
-		}
-		sender := runtime.OriginCaller()
-		escrowAddr := runtime.CurrentRealm().Address()
-		teller := token.RealmTeller()
-		if err := teller.TransferFrom(sender, escrowAddr, amount); err != nil {
-			panic(ufmt.Errorf("TransferFrom GRC20 error: %v", err))
 		}
 		// Replace the denom with a slash-free alias for the IBC packet.
 		// This avoids ibc-go rejecting base denoms containing slashes.
