@@ -213,7 +213,6 @@ func (s *E2ETestSuite) TestIBCTransferGnoToAtomOne() {
 		if err != nil {
 			return false
 		}
-		fmt.Println("BAL", bal, denom)
 		afterGnoBalance = bal
 		return afterGnoBalance == beforeGnoBalance+transferAmount
 	}, time.Minute/2, time.Second, "gnot balance not received on Gno")
@@ -226,7 +225,7 @@ func (s *E2ETestSuite) TestIBCTransferGRC20GnoToAtomOne() {
 		r              = s.Require()
 		mintAmount     = int64(1000000)
 		transferAmount = int64(100)
-		denom          = "gno.land/r/aib/ibc/apps/testing/grc20test"
+		denom          = "gno.land/r/aib/ibc/apps/testing/grc20test.my:exotic/slug%2F"
 		sender         = s.gnoSenderAddress
 		receiver       = s.atomOneSenderAddress
 		timeout        = time.Now().Add(time.Hour).Unix()
