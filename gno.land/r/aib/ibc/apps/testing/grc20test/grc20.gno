@@ -6,13 +6,19 @@ import (
 	"gno.land/r/demo/defi/grc20reg"
 )
 
+// Slug is the grc20reg registration slug (the third argument to
+// grc20reg.Register). It deliberately contains colons, slashes, and a literal
+// %2F to stress-test the GRC20Alias url.PathEscape encoding used in IBC transfer
+// packets.
+const Slug = "my:exotic/slug%2F"
+
 var (
 	Token, ledger = grc20.NewToken("Test", "TEST", 0)
 	UserTeller    = Token.CallerTeller()
 )
 
 func init() {
-	grc20reg.Register(cross, Token, "")
+	grc20reg.Register(cross, Token, Slug)
 }
 
 // Mint tokens to the specified address.

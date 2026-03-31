@@ -44,7 +44,7 @@ func main() {
 	grc20test.Approve(cross, signer, transferAppAddr, 100)
 
 	// Step 1: Transfer to escrow GRC20 tokens (chain A → chain B)
-	grc20regKey := "gno.land/r/aib/ibc/apps/testing/grc20test"
+	grc20regKey := "gno.land/r/aib/ibc/apps/testing/grc20test." + grc20test.Slug
 	testing.SetOriginCaller(signer)
 	println("signer grc20 balance before Transfer:", grc20test.BalanceOf(signer))
 	sendPacket, sequence := transfer.TransferGRC20(cross, clientID, "atone1user", grc20regKey, 100, uint64(time.Now().Add(10*time.Minute).Unix()))

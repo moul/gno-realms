@@ -33,9 +33,9 @@ func main() {
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
 	grc20test.Approve(cross, caller, transferAppAddr, 100)
 
-	denom := "gno.land/r/aib/ibc/apps/testing/grc20test"
+	denom := "gno.land/r/aib/ibc/apps/testing/grc20test." + grc20test.Slug
 	transfer.TransferGRC20(cross, clientID, "atone1user", denom, 100, uint64(time.Now().Add(time.Hour).Unix()))
 }
 
 // Error:
-// send packet failed for payload #0 app "transfer": escrow GRC20 gno.land/r/aib/ibc/apps/testing/grc20test error: insufficient balance
+// send packet failed for payload #0 app "transfer": escrow GRC20 gno.land/r/aib/ibc/apps/testing/grc20test.my:exotic/slug%2F error: insufficient balance
