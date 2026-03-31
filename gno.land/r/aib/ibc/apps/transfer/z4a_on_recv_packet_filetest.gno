@@ -13,7 +13,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// OnRecvPacket: success
+// OnRecvPacket: success with native coins
 func main() {
 	var (
 		chainID       = "chain-id-2"

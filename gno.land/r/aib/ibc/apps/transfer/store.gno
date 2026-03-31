@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"chain"
+	"net/url"
 	"strings"
 
 	"gno.land/p/demo/tokens/grc20"
@@ -95,21 +96,25 @@ func VoucherBalanceOf(ibcDenom string, addr address) int64 {
 }
 
 // GRC20Alias returns a slash-free alias for a GRC20 denom (grc20reg key)
-// by replacing "/" with ":". Colons are allowed in Cosmos SDK denoms but
-// never appear in grc20reg keys (Gno package paths), so no escaping is needed.
-// Example: "gno.land/r/demo/foo.FOO" → "gno.land:r:demo:foo.FOO"
+// using url.PathEscape. This ensures slashes are encoded as %2F while keeping
+// the denom human-readable.
+// Examples:
+//
+//	"gno.land/r/demo/foo"      → "gno.land%2Fr%2Fdemo%2Ffoo"
+//	"gno.land/r/demo/foo.FOO"  → "gno.land%2Fr%2Fdemo%2Ffoo.FOO"
+//	"gno.land/r/demo/foo.A:B"  → "gno.land%2Fr%2Fdemo%2Ffoo.A:B"
 func GRC20Alias(grc20regKey string) string {
-	return strings.ReplaceAll(grc20regKey, "/", ":")
+	return url.PathEscape(grc20regKey)
 }
 
-// resolveGRC20Alias converts a GRC20 alias back to the grc20reg key
-// by replacing ":" with "/".
-func resolveGRC20Alias(alias string) string {
-	return strings.ReplaceAll(alias, ":", "/")
+// resolveGRC20Alias converts a GRC20 alias back to the grc20reg key,
+// reversing the encoding applied by grc20Alias.
+func resolveGRC20Alias(alias string) (string, error) {
+	return url.PathUnescape(alias)
 }
 
 // isGRC20Alias returns true if the denom is a GRC20 alias.
-// GRC20 aliases always start with "gno.land:" (the colon-encoded form of "gno.land/").
+// GRC20 aliases always start with "gno.land%2F" (the path-escaped form of "gno.land/").
 func isGRC20Alias(denom string) bool {
-	return strings.HasPrefix(denom, "gno.land:")
+	return strings.HasPrefix(denom, "gno.land%2F")
 }

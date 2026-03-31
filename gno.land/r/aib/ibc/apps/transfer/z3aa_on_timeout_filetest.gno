@@ -15,7 +15,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// OnTimeout: success w/ IBC token
+// OnTimeout: success w/ IBC voucher token
 func main() {
 	var (
 		chainID       = "atomone-1"

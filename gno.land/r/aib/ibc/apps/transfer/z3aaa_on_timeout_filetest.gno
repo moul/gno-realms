@@ -43,33 +43,12 @@ func main() {
 	transferAppAddr := chain.PackageAddress("gno.land/r/aib/ibc/apps/transfer")
 	grc20test.Approve(cross, signer, transferAppAddr, 100)
 
-	// Build a SendPacket with the GRC20 alias denom
-	denom := "gno.land:r:aib:ibc:apps:testing:grc20test"
-	payload := transfer.FungibleTokenPacketData{
-		Denom:    denom,
-		Amount:   "100",
-		Sender:   signer.String(),
-		Receiver: "atone1user",
-	}
-	payloadBz := payload.ProtoMarshal()
-	sendPacket := types.MsgSendPacket{
-		SourceClient:     clientID,
-		TimeoutTimestamp: uint64(time.Now().Add(10 * time.Minute).Unix()),
-		Payloads: []types.Payload{
-			{
-				SourcePort:      transfer.PortID,
-				DestinationPort: transfer.PortID,
-				Encoding:        transfer.EncodingProtobuf,
-				Value:           payloadBz,
-				Version:         transfer.V1,
-			},
-		},
-	}
+	// Step 1: Transfer to escrow GRC20 tokens (chain A → chain B)
+	grc20regKey := "gno.land/r/aib/ibc/apps/testing/grc20test"
 	testing.SetOriginCaller(signer)
-	println("signer grc20 balance before SendPacket:", grc20test.BalanceOf(signer))
-	// Send the packet (escrows GRC20 tokens via OnSendPacket)
-	sequence := core.SendPacket(cross, sendPacket)
-	println("\nsigner grc20 balance after SendPacket:", grc20test.BalanceOf(signer))
+	println("signer grc20 balance before Transfer:", grc20test.BalanceOf(signer))
+	sendPacket, sequence := transfer.TransferGRC20(cross, clientID, "atone1user", grc20regKey, 100, uint64(time.Now().Add(10*time.Minute).Unix()))
+	println("\nsigner grc20 balance after Transfer:", grc20test.BalanceOf(signer))
 
 	// Change block time to after the timeout
 	ctx := testing.GetContext()
@@ -206,9 +185,9 @@ func main() {
 }
 
 // Output:
-// signer grc20 balance before SendPacket: 1000
+// signer grc20 balance before Transfer: 1000
 //
-// signer grc20 balance after SendPacket: 900
+// signer grc20 balance after Transfer: 900
 //
 // timeout res: (2 gno.land/p/aib/ibc/types.ResponseResultType)
 //
