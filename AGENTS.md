@@ -19,6 +19,8 @@ Under the hood:
 
 **Important:** Always use `go tool gno test`, not a standalone `gno` binary. The gno fork is resolved via `go mod` replace directives, so `go tool gno` picks up the correct fork automatically. A standalone `gno` may point to upstream and miss fork-specific features.
 
+**Important:** After `make update-fork`, run `make mod-download` to sync the gno package cache (`~/.config/gno/pkg/mod/`) with the fork. The gno toolchain resolves realm/package dependencies from this cache, not from the Go module cache. Without `mod-download`, tests may use stale versions of dependencies.
+
 Run a single package's tests:
 ```bash
 go tool gno test ./gno.land/p/aib/ibc/types
