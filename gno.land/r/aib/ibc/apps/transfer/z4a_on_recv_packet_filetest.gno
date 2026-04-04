@@ -128,6 +128,8 @@ func main() {
 	println(transfer.Render("voucher/" + voucherDenom))
 	println("\n----------- assert render voucher balance")
 	println(transfer.Render("voucher/" + voucherDenom + "/balance/" + receiver.String()))
+	println("\n----------- assert render vouchers")
+	println(transfer.Render("vouchers"))
 }
 
 // Output:
@@ -146,10 +148,13 @@ func main() {
 // {"base":"uphoton","path":"transfer/07-tendermint-1/uphoton","denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8"}
 //
 // ----------- assert render voucher
-// {"denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","name":"uphoton","symbol":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","decimals":0,"total_supply":100}
+// {"denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","grc20reg_key":"main.CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","name":"uphoton","symbol":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","decimals":0,"total_supply":100}
 //
 // ----------- assert render voucher balance
 // {"denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","address":"g1wfjkxetfwejhyh6lta047h6lta047h6llm82yl","balance":100}
+//
+// ----------- assert render vouchers
+// {"items":[{"denom":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","grc20reg_key":"main.CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","name":"uphoton","symbol":"ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8","decimals":0,"total_supply":100}],"page":1,"total":1}
 
 // Events:
 // [

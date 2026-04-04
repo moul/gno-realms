@@ -103,7 +103,8 @@ All endpoints return JSON and are accessible via gnoweb or `gnokey query vm/qren
 | `denoms` | List all registered IBC denominations |
 | `denoms/ibc/{hash}` | Details for a specific IBC denom (base, path, denom) |
 | `total_escrow/{denom}` | Total escrowed amount for a native denom |
-| `voucher/ibc/{hash}` | Voucher token metadata (denom, name, symbol, decimals, total supply) |
+| `vouchers` | List all voucher tokens (paginated, includes `grc20reg_key`) |
+| `voucher/ibc/{hash}` | Voucher token metadata (denom, grc20reg_key, name, symbol, decimals, total supply) |
 | `voucher/ibc/{hash}/balance/{addr}` | Voucher balance for an address |
 
 Example:
@@ -145,6 +146,45 @@ denom := transfer.NewDenom("uphoton", transfer.NewHop(transfer.PortID, "07-tende
 ibcDenom := denom.IBCDenom()
 // "ibc/CAEF9CA8CE6C302D73A831A49E34E59149D3A9AD96CCEBDFBF62F6D5710D92D8"
 ```
+
+## DEX integration for voucher tokens
+
+Voucher tokens minted on `RecvPacket` are standard GRC20 tokens registered in
+`grc20reg`. A DEX (e.g. Gnoswap) can discover and list them like any other
+GRC20 token.
+
+### Discovery
+
+Voucher tokens can be discovered in two ways:
+
+1. **From the transfer app** — query the `vouchers` render endpoint to list all
+   voucher tokens with their metadata. Each entry includes a `grc20reg_key`
+   field with the token's grc20reg key, ready for direct lookup. Supports
+   pagination.
+
+2. **From `grc20reg`** — voucher tokens are registered with the key
+   `gno.land/r/aib/ibc/apps/transfer.{HASH}`, where `{HASH}` is the uppercase
+   hex SHA256 hash from the `ibc/{HASH}` denom. Enumerate entries with the
+   `gno.land/r/aib/ibc/apps/transfer.` prefix.
+
+The token name is the base denomination (e.g. `uatom`) and the symbol is the
+full IBC denom (e.g. `ibc/CAEF9C...`). For richer metadata (trace hops, total
+supply), query the render endpoint `voucher/ibc/{HASH}`.
+
+### Trading
+
+1. A user receives voucher tokens via an IBC `RecvPacket`.
+2. The user approves the DEX realm address to spend their voucher tokens
+   (`Approve`).
+3. The DEX interacts with the voucher via the standard GRC20 teller interface
+   (`TransferFrom`, `BalanceOf`, etc.).
+
+### Multiple vouchers for the same base denom
+
+The same base denomination (e.g. `uatom`) arriving from different chains
+produces distinct voucher tokens with different IBC hashes. A DEX should use the
+full `ibc/{HASH}` denom (available as the token symbol) to distinguish them, and
+query `denoms/ibc/{HASH}` to resolve the trace path for display purposes.
 
 ## Events
 

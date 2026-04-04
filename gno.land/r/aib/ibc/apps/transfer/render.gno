@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"chain"
+	"chain/runtime"
 
 	"gno.land/p/aib/jsonpage"
 	"gno.land/p/nt/mux/v0"
@@ -15,6 +16,7 @@ func Render(path string) string {
 	router.HandleFunc("denoms", renderDenoms)
 	router.HandleFunc("denoms/ibc/{hash}", renderDenom)
 	router.HandleFunc("total_escrow/{denom}", renderTotalEscrowForDenom)
+	router.HandleFunc("vouchers", renderVouchers)
 	router.HandleFunc("voucher/ibc/{hash}", renderVoucher)
 	router.HandleFunc("voucher/ibc/{hash}/balance/{addr}", renderVoucherBalance)
 	return router.Render(path)
@@ -52,6 +54,20 @@ func renderTotalEscrowForDenom(w *mux.ResponseWriter, r *mux.Request) {
 	}))
 }
 
+func renderVouchers(w *mux.ResponseWriter, r *mux.Request) {
+	renderNode(w, jsonpage.Render(voucherTokens, r, func(key string, v any) *json.Node {
+		inst := v.(*voucher)
+		return json.ObjectNode("", map[string]*json.Node{
+			"denom":        json.StringNode("", key),
+			"grc20reg_key": json.StringNode("", grc20regKey(key)),
+			"name":         json.StringNode("", inst.token.GetName()),
+			"symbol":       json.StringNode("", inst.token.GetSymbol()),
+			"decimals":     json.NumberNode("", float64(inst.token.GetDecimals())),
+			"total_supply": json.NumberNode("", float64(inst.token.TotalSupply())),
+		})
+	}))
+}
+
 func renderVoucher(w *mux.ResponseWriter, r *mux.Request) {
 	ibcDenom := "ibc/" + r.GetVar("hash")
 	inst := getVoucher(ibcDenom)
@@ -61,6 +77,7 @@ func renderVoucher(w *mux.ResponseWriter, r *mux.Request) {
 	}
 	renderNode(w, json.ObjectNode("", map[string]*json.Node{
 		"denom":        json.StringNode("", ibcDenom),
+		"grc20reg_key": json.StringNode("", grc20regKey(ibcDenom)),
 		"name":         json.StringNode("", inst.token.GetName()),
 		"symbol":       json.StringNode("", inst.token.GetSymbol()),
 		"decimals":     json.NumberNode("", float64(inst.token.GetDecimals())),
@@ -90,6 +107,12 @@ func renderNode(w *mux.ResponseWriter, n *json.Node) {
 		panic(err)
 	}
 	w.Write(string(bz))
+}
+
+// grc20regKey returns the grc20reg key for a voucher ibc denom.
+// e.g. "ibc/CAEF9C..." → "gno.land/r/aib/ibc/apps/transfer.CAEF9C..."
+func grc20regKey(ibcDenom string) string {
+	return runtime.CurrentRealm().PkgPath() + "." + ibcDenom[len("ibc/"):]
 }
 
 func nodeError(msg string, args ...any) *json.Node {
