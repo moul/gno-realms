@@ -1,6 +1,7 @@
 package main
 
 import (
+	"testing"
 	"time"
 
 	tmtesting "gno.land/p/aib/ibc/lightclient/tendermint/testing"
@@ -10,7 +11,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// Timeout timestamp < proofTimestamp
+// Timeout unauthorized relayer
 func main() {
 	core.SetAdmin(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 	core.AddRelayer(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
@@ -25,13 +26,13 @@ func main() {
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
-	// Register app
+
 	var (
 		app       = appstesting.NewApp(cross)
 		appPortID = "app"
 	)
 	core.RegisterApp(cross, appPortID, app)
-	// Send a packet
+
 	sendPacket := types.MsgSendPacket{
 		SourceClient:     clientID,
 		TimeoutTimestamp: uint64(time.Now().Add(time.Hour).Unix()),
@@ -45,13 +46,12 @@ func main() {
 	}
 	sequence := core.SendPacket(cross, sendPacket)
 
-	// Timeout the packet
 	timeoutPacket := types.MsgTimeout{
 		Packet: types.Packet{
 			Sequence:          sequence,
 			SourceClient:      clientID,
 			DestinationClient: counterpartyID,
-			TimeoutTimestamp:  sendPacket.TimeoutTimestamp,
+			TimeoutTimestamp:  1,
 			Payloads:          sendPacket.Payloads,
 		},
 		ProofUnreceived: []ics23.CommitmentProof{
@@ -62,8 +62,9 @@ func main() {
 		ProofHeight: trustedHeight,
 	}
 
+	testing.SetOriginCaller("g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsx")
 	core.Timeout(cross, timeoutPacket)
 }
 
 // Error:
-// proof timestamp: 1234567890, timeout timestamp: 1234571490
+// unauthorized relayer g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsx

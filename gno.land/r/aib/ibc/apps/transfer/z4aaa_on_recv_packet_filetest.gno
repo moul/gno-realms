@@ -22,6 +22,8 @@ import (
 // Scenario: chain A sent a GRC20 token to chain B (SendPacket escrows),
 // then chain B sends it back (RecvPacket unescrows via isGRC20Alias).
 func main() {
+	core.SetAdmin(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
+	core.AddRelayer(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 	var (
 		chainID       = "chain-id-2"
 		trustedHeight = types.NewHeight(2, 2)
@@ -34,6 +36,7 @@ func main() {
 	)
 	clientID := core.CreateClient(cross, clientState, consensusState)
 	core.RegisterCounterparty(cross, clientID, [][]byte{[]byte("iavlStoreKey"), []byte("prefix2")}, counterpartyID)
+	relayer := runtime.OriginCaller()
 
 	signer := runtime.CurrentRealm().Address()
 
@@ -136,6 +139,7 @@ func main() {
 	println("\nreceiver grc20 balance before RecvPacket:", grc20test.BalanceOf(receiver))
 	println("transfer app grc20 balance before RecvPacket:", grc20test.BalanceOf(transferAppAddr))
 
+	testing.SetOriginCaller(relayer)
 	res := core.RecvPacket(cross, recvPacket)
 
 	println("\nack res:", res)
