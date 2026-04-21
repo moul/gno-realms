@@ -26,7 +26,8 @@ test:
 # on the default gno remote, but exist in the fork's examples.
 mod-download:
 	go tool gnodev -empty-blocks -resolver root=. \
-		-resolver root=$(shell go tool gno env GNOROOT)/examples > /dev/null 2>&1 & \
+		-resolver root=$(shell go tool gno env GNOROOT)/examples \
+		-lazy-loader=false & \
 	while ! curl -s http://127.0.0.1:26657/status > /dev/null 2>&1; do sleep 1; done; \
 	go tool gno clean -modcache=true; \
 	go tool gno mod download -remote-overrides gno.land=http://127.0.0.1:26657
