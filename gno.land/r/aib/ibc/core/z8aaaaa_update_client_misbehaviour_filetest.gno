@@ -9,9 +9,10 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// UpdateClient with invalid misbehaviour:
-// header1.trusteheight not found
+// UpdateClient with valid misbehaviour and authorized relayers
 func main() {
+	core.SetAdmin(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
+	core.AddRelayer(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 	// CreateClient and RegisterCounterparty
 	var (
 		chainID     = "atomone-1"
@@ -46,7 +47,7 @@ func main() {
 			newHeight       = uint64(4)
 			newTimestamp    = consensusState.Timestamp.Add(time.Minute * time.Duration(0))
 			nextValset      = tendermint.NewValset(val1, val2)
-			trustedHeight   = types.Height{0, 1}
+			trustedHeight   = clientState.LatestHeight
 
 			signatures = []tendermint.CommitSig{
 				{
@@ -117,7 +118,50 @@ func main() {
 	println(core.Render("clients"))
 	println("----------- assert render clients/07-tendermint-1/consensus_states")
 	println(core.Render("clients/" + clientID + "/consensus_states"))
+	println("----------- assert render client status")
+	println(core.Render("clients/" + clientID + "/status"))
 }
 
-// Error:
-// could not get trusted consensus state from clientStore for Header1 at TrustedHeight: 0/1
+// Output:
+// ----------- assert render clients
+// {"items":[{"id":"07-tendermint-1","type":"07-tendermint","creator":"g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm","status":"Frozen","counterparty_client_id":"07-tendermint-2","counterparty_merke_prefix":["iavlStoreKey","prefix2"],"client_state":{"chain_id":"atomone-1","latest_height":{"revision_number":1,"revision_height":2},"frozen_height":{"revision_number":0,"revision_height":1},"trust_level":{"numerator":1,"denominator":3},"trusting_period":3600,"unbonding_period":10800,"max_clock_drift":3600,"upgrade_path":[]},"last_consensus_state":{"height":{"revision_number":1,"revision_height":2},"timestamp":1234567890,"root":"YAdxKyKDg+tUQc5Dli2fYkJ2imznqbJ+UDfQ7y0QNlM=","next_validators_hash":"OJfJuH6dfiZI2d0uAxqamqfIVqV4c4oEAZigvJ8UqFQ="}}],"page":1,"total":1}
+// ----------- assert render clients/07-tendermint-1/consensus_states
+// {"items":[{"height":{"revision_number":1,"revision_height":2},"timestamp":1234567890,"root":"YAdxKyKDg+tUQc5Dli2fYkJ2imznqbJ+UDfQ7y0QNlM=","next_validators_hash":"OJfJuH6dfiZI2d0uAxqamqfIVqV4c4oEAZigvJ8UqFQ="}],"page":1,"total":1}
+// ----------- assert render client status
+// {"status":"Frozen"}
+
+// Events:
+// [
+//   {
+//     "type": "create_client",
+//     "attrs": [
+//       {
+//         "key": "client_id",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "client_type",
+//         "value": "07-tendermint"
+//       },
+//       {
+//         "key": "consensus_heights",
+//         "value": "1/2"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   },
+//   {
+//     "type": "client_misbehaviour",
+//     "attrs": [
+//       {
+//         "key": "client_id",
+//         "value": "07-tendermint-1"
+//       },
+//       {
+//         "key": "client_type",
+//         "value": "07-tendermint"
+//       }
+//     ],
+//     "pkg_path": "gno.land/r/aib/ibc/core"
+//   }
+// ]

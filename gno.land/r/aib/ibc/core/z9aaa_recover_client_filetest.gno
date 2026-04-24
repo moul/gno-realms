@@ -9,8 +9,7 @@ import (
 	"gno.land/r/aib/ibc/core"
 )
 
-// RecoverClient success: a Frozen subject client is recovered using an Active
-// substitute client that tracks the same counterparty chain.
+// RecoverClient success with authorized relayer
 func main() {
 	core.SetAdmin(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 

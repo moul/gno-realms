@@ -12,7 +12,6 @@ import (
 func main() {
 	// Admin is set to a different address than the test caller.
 	core.SetAdmin(cross, "g1somebodyelse00000000000000000000000000")
-	core.AddRelayer(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 	var (
 		clientState    = tmtesting.NewClientState("chain-id-2", types.NewHeight(2, 2))
 		trustedValset  = tmtesting.GenValset()

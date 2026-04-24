@@ -13,7 +13,6 @@ import (
 // (different MaxClockDrift).
 func main() {
 	core.SetAdmin(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
-	core.AddRelayer(cross, "g1wymu47drhr0kuq2098m792lytgtj2nyx77yrsm")
 	var (
 		chainID     = "atomone-1"
 		height      = uint64(2)
