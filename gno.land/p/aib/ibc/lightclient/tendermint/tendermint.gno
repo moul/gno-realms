@@ -9,18 +9,18 @@ import (
 	"gno.land/p/aib/ibc/lightclient"
 	"gno.land/p/aib/ibc/types"
 	"gno.land/p/aib/ics23"
-	"gno.land/p/nt/avl/v0"
+	"gno.land/p/nt/bptree/v0"
 	"gno.land/p/nt/ufmt/v0"
 )
 
 type TMLightClient struct {
 	ClientState            *ClientState
-	ConsensusStateByHeight *avl.Tree // height:*ConsensusState
+	ConsensusStateByHeight *bptree.BPTree // height:*ConsensusState
 }
 
 func NewTMLightClient() *TMLightClient {
 	return &TMLightClient{
-		ConsensusStateByHeight: avl.NewTree(),
+		ConsensusStateByHeight: bptree.NewBPTree32(),
 	}
 }
 
