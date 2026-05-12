@@ -58,7 +58,6 @@ gno.land/
     encoding/proto/           # Protobuf varint/field encoding
     merkle/                   # RFC-6962 Merkle tree
     jsonpage/                 # AVL tree JSON pagination
-    limitedbanker/            # Banker wrapper with spending limits
   r/aib/ibc/                  # Realms (stateful contracts)
     core/                     # IBC v2 core: CreateClient, SendPacket, RecvPacket, etc.
     apps/transfer/            # Token transfer app (ICS-20 equivalent)
