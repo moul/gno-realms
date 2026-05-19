@@ -372,17 +372,28 @@ func IsRightMost(spec *InnerSpec, path []*InnerOp) (bool, error) {
 //	For step in LPath[0..len-1], validate step is right-most node
 //	For step in RPath[0..len-1], validate step is left-most node
 func IsLeftNeighbor(spec *InnerSpec, left []*InnerOp, right []*InnerOp) (bool, error) {
+	if len(left) == 0 || len(right) == 0 {
+		return false, nil
+	}
+
 	// count common tail (from end, near root)
 	left, topleft := left[:len(left)-1], left[len(left)-1]
 	right, topright := right[:len(right)-1], right[len(right)-1]
 	for bytes.Equal(topleft.Prefix, topright.Prefix) && bytes.Equal(topleft.Suffix, topright.Suffix) {
+		if len(left) == 0 || len(right) == 0 {
+			return false, nil
+		}
 		left, topleft = left[:len(left)-1], left[len(left)-1]
 		right, topright = right[:len(right)-1], right[len(right)-1]
 	}
 
 	// now topleft and topright are the first divergent nodes
 	// make sure they are left and right of each other
-	if !isLeftStep(spec, topleft, topright) {
+	ok, err := isLeftStep(spec, topleft, topright)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
 		return false, nil
 	}
 
@@ -408,18 +419,18 @@ func IsLeftNeighbor(spec *InnerSpec, left []*InnerOp, right []*InnerOp) (bool, e
 
 // isLeftStep assumes left and right have common parents
 // checks if left is exactly one slot to the left of right
-func isLeftStep(spec *InnerSpec, left *InnerOp, right *InnerOp) bool {
+func isLeftStep(spec *InnerSpec, left *InnerOp, right *InnerOp) (bool, error) {
 	leftidx, err := orderFromPadding(spec, left)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 	rightidx, err := orderFromPadding(spec, right)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
 	// TODO: is it possible there are empty (nil) children???
-	return rightidx == leftidx+1
+	return rightidx == leftidx+1, nil
 }
 
 // checks if an op has the expected padding
