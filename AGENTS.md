@@ -281,8 +281,8 @@ e2e/
 
 | Service | Host Port → Container | Description |
 |---------|----------------------|-------------|
-| gno | 46657 → 26657 | Tendermint RPC |
-| gno | 48888 → 8888 | gnoweb |
+| gno | 26657 → 26657 | Tendermint RPC |
+| gno | 8888 → 8888 | gnoweb |
 | tx-indexer | 48546 → 8546 | GraphQL (for relayer) |
 | atomone | 36657 → 26657 | Tendermint RPC |
 | atomone | 1317 → 1317 | REST API |
@@ -306,3 +306,4 @@ e2e/
 - **Relayer uses `--dquery`** for Gno's GraphQL endpoint: `http://tx-indexer:8546/graphql/query`
 - **Sign+broadcast retries on sequence mismatch** — the relayer shares the same account (TEST_MNEMONIC), causing occasional races
 - **`--force-recreate` required** in `docker compose up` to avoid stale container state (e.g. validator key already exists)
+- **Adena dev build required for txlinks** — the transfer realm's render page exposes `txlink`-generated transaction links that open Adena. The published Adena release only accepts requests from `gno.land` / `*.gnoland.network`; sending from `localhost:8888` **silently fails** (no error popup — the click just does nothing). Use a locally built Adena in **dev mode** (`yarn build:dev` — i.e. `webpack --mode=development` — in `adena-wallet/packages/adena-extension`, then load the unpacked extension) so the chain-id `dev` and `127.0.0.1` origin are accepted. The e2e entrypoint sets `-web-help-remote http://127.0.0.1:26657` so Adena's downstream RPC fetch resolves correctly.

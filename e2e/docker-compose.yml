@@ -7,8 +7,8 @@ services:
         - FORK_REPO
         - FORK_BRANCH
     ports:
-      - "46657:26657"
-      - "48888:8888"
+      - "26657:26657"
+      - "8888:8888"
     env_file: .env
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:26657/status"]

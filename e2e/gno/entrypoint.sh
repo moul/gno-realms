@@ -16,6 +16,7 @@ echo "Relayer address: $RELAYER_ADDR"
 exec gnodev local \
     -node-rpc-listener 0.0.0.0:26657 \
     -web-listener 0.0.0.0:8888 \
+    -web-help-remote http://127.0.0.1:26657 \
     -empty-blocks \
     -no-watch \
     -add-account "${TEST_ADDR}=10000000000ugnot" \
