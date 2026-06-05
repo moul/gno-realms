@@ -87,6 +87,11 @@ echo "    key=$KEY  gas-fee=$GAS_FEE  gas-wanted=$GAS_WANTED  max-deposit=$MAX_D
 echo "    starting at entry $START_AT  dry-run=$DRY_RUN"
 echo
 
+# Ask the key password once, then feed it to every gnokey invocation via
+# -insecure-password-stdin instead of prompting interactively each time.
+read -rsp "Password for key '$KEY': " GNOKEY_PASSWORD
+echo; echo
+
 i=0
 for entry in "${PACKAGES[@]}"; do
   i=$((i + 1))
@@ -106,7 +111,8 @@ for entry in "${PACKAGES[@]}"; do
     exit 1
   fi
 
-  gnokey maketx addpkg \
+  printf '%s\n' "$GNOKEY_PASSWORD" | gnokey maketx addpkg \
+    -insecure-password-stdin \
     -pkgpath "$pkgpath" \
     -pkgdir "$pkgdir" \
     -gas-fee "$GAS_FEE" \
@@ -117,6 +123,23 @@ for entry in "${PACKAGES[@]}"; do
     -chainid "$CHAIN_ID" \
     -remote "$REMOTE" \
     "$KEY"
+
+  # BroadcastTxCommit returns slightly before the next-block state is
+  # queryable, so the next tx could be signed with a stale account sequence
+  # ("signature verification failed"). Wait until the package is queryable
+  # (same committed state as the account sequence) before moving on.
+  if [[ "$DRY_RUN" != "1" ]]; then
+    for attempt in $(seq 1 30); do
+      if gnokey query vm/qfile -data "$pkgpath" -remote "$REMOTE" >/dev/null 2>&1; then
+        break
+      fi
+      if (( attempt == 30 )); then
+        echo "    ERROR: $pkgpath still not on chain after ${attempt}s" >&2
+        exit 1
+      fi
+      sleep 1
+    done
+  fi
 
   echo
 done
