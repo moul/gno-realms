@@ -1,25 +1,41 @@
 #!/usr/bin/env bash
-# Send tokens via IBC v2 MsgSendPacket from AtomOne to Gno using the e2e localnet.
+# Send tokens via IBC v2 MsgSendPacket from the AtomOne to gno, using a local
+# `atomoned` binary signing against a public RPC.
 #
-# Defaults: 20 ATONE (20_000_000 uatone) atone1z437…→g1z437… via 10-gno-0.
-# Override via env: DENOM, AMOUNT, RECEIVER, CLIENT_ID, SIGNER, MEMO, TIMEOUT.
+# Prerequisites:
+#   - atomoned installed locally and on $PATH
+#   - your signing key imported in the local keyring (default: test backend).
+#     KEY's address MUST equal $SENDER, otherwise signing fails with a mismatch.
+#
+# Defaults: 1 ATONE (1_000_000 uatone) atone12j6x…→g12j6x… via 10-gno-0.
+# Override via env: NODE, CHAIN_ID, CLIENT_ID, KEY, KEYRING_BACKEND, SENDER,
+#   RECEIVER, DENOM, AMOUNT, FEE_DENOM, FEE_AMOUNT, GAS, MEMO, TIMEOUT, ATOMONE_HOME.
 #
 # Usage:
 #   ./scripts/transfer-atomone-to-gno.sh
-#   AMOUNT=5000000 DENOM=uphoton ./scripts/transfer-atomone-to-gno.sh
+#   AMOUNT=5000000 ./scripts/transfer-atomone-to-gno.sh
 
 set -euo pipefail
 
-CONTAINER="${CONTAINER:-e2e-atomone-1}"
-CHAIN_ID="${CHAIN_ID:-atomone-e2e-1}"
-CLIENT_ID="${CLIENT_ID:-10-gno-0}"
-SIGNER="${SIGNER:-validator}"
-SENDER="${SENDER:-atone1z437dpuh5s4p64vtq09dulg6jzxpr2hdgu88r6}"
-RECEIVER="${RECEIVER:-g1z437dpuh5s4p64vtq09dulg6jzxpr2hd4q8r5x}"
+NODE="${NODE:-https://atomone-testnet-1-rpc.allinbits.services:443}"
+CHAIN_ID="${CHAIN_ID:-atomone-testnet-1}"
+CLIENT_ID="${CLIENT_ID:-10-gno-8}"
+KEY="${KEY:-relayer}"
+KEYRING_BACKEND="${KEYRING_BACKEND:-test}"
+KEYRING_DIR="${KEYRING_DIR:-~/.atomone-testnet}"
+SENDER="${SENDER:-atone1z437dpuh5s4p64vtq09dulg6jzxpr2hdgu88r6}" # relayer
+RECEIVER="${RECEIVER:-g1z437dpuh5s4p64vtq09dulg6jzxpr2hd4q8r5x}" # relayer
 DENOM="${DENOM:-uatone}"
-AMOUNT="${AMOUNT:-20000000}"
+AMOUNT="${AMOUNT:-1000000}"
+FEE_DENOM="${FEE_DENOM:-uphoton}"
+FEE_AMOUNT="${FEE_AMOUNT:-10000}"
+GAS="${GAS:-300000}"
 MEMO="${MEMO:-}"
 TIMEOUT="${TIMEOUT:-$(( $(date +%s) + 3600 ))}"
+ATOMONE_HOME="${ATOMONE_HOME:-}"
+
+HOME_FLAG=()
+[[ -n "$ATOMONE_HOME" ]] && HOME_FLAG=(--home "$ATOMONE_HOME")
 
 # Encode FungibleTokenPacketData proto: denom(1), amount(2), sender(3), receiver(4), memo(5)
 PAYLOAD_B64=$(python3 - "$DENOM" "$AMOUNT" "$SENDER" "$RECEIVER" "$MEMO" <<'PY'
@@ -61,8 +77,8 @@ UNSIGNED=$(cat <<JSON
   },
   "auth_info": {
     "fee": {
-      "amount": [{"denom": "uphoton", "amount": "10000"}],
-      "gas_limit": "300000"
+      "amount": [{"denom": "$FEE_DENOM", "amount": "$FEE_AMOUNT"}],
+      "gas_limit": "$GAS"
     },
     "signer_infos": []
   },
@@ -71,11 +87,22 @@ UNSIGNED=$(cat <<JSON
 JSON
 )
 
-echo "==> Transferring $AMOUNT $DENOM from $SENDER -> $RECEIVER via $CLIENT_ID (timeout=$TIMEOUT)"
-echo "$UNSIGNED" | docker exec -i "$CONTAINER" sh -c 'cat > /tmp/unsigned.json'
-docker exec "$CONTAINER" atomoned tx sign /tmp/unsigned.json \
-    --from "$SIGNER" --chain-id "$CHAIN_ID" --keyring-backend test \
-    --home /root/.atomone --node tcp://localhost:26657 \
-    --output-document /tmp/signed.json
-docker exec "$CONTAINER" atomoned tx broadcast /tmp/signed.json \
-    --node tcp://localhost:26657 --output json
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+echo "==> Transferring $AMOUNT $DENOM from $SENDER -> $RECEIVER"
+echo "    via $CLIENT_ID on $CHAIN_ID ($NODE), timeout=$TIMEOUT"
+printf '%s\n' "$UNSIGNED" > "$TMP/unsigned.json"
+
+SIGN_CMD=(atomoned tx sign "$TMP/unsigned.json"
+    --from "$KEY" --chain-id "$CHAIN_ID" --keyring-backend "$KEYRING_BACKEND"
+    --keyring-dir "$KEYRING_DIR"
+    "${HOME_FLAG[@]}" --node "$NODE"
+    --output-document "$TMP/signed.json")
+BROADCAST_CMD=(atomoned tx broadcast "$TMP/signed.json" --node "$NODE" --output json)
+
+echo "==> ${SIGN_CMD[*]}"
+"${SIGN_CMD[@]}"
+
+echo "==> ${BROADCAST_CMD[*]}"
+"${BROADCAST_CMD[@]}"
