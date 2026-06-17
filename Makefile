@@ -69,8 +69,8 @@ e2e-build-no-cache:
 
 # --- Fork management ---
 
-export FORK_REPO   := github.com/allinbits/gno
-export FORK_BRANCH := ibc-fork-allowall-v4
+export FORK_REPO   := github.com/gnolang/gno
+export FORK_BRANCH := master
 
 # Optional Go build tags forwarded to the gnodev build in the e2e image.
 # Set GO_BUILD_TAGS=gastrace to build the store-gas tracing variant used by
