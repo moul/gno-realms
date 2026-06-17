@@ -7,8 +7,8 @@ IBC v2 implementation for Gno (similar to IBC Eureka for Ethereum). Gno smart co
 ```bash
 make test           # Run all tests (gno filetests + Go tests)
 make gnodev         # Start local gno node with all realms/packages
-make update-fork    # Update the allinbits/gno fork dependency
-make mod-download   # Sync gno package cache (~/.config/gno/pkg/mod/) with the fork
+make update-fork    # Re-pin gnolang/gno@master to its latest commit
+make mod-download   # Sync gno package cache (~/.config/gno/pkg/mod/) with the pinned commit
 ```
 
 CI runs unit + e2e tests on every push (`.github/workflows/test.yml`).
@@ -17,9 +17,9 @@ Under the hood:
 - `go tool gno test ./gno.land/...` runs all Gno tests (unit tests + filetests)
 - `go test -C ./cmd/gen-block-signatures` and `go test -C ./cmd/gen-proof` run Go tests
 
-**Important:** Always use `go tool gno test`, not a standalone `gno` binary. The gno fork is resolved via `go mod` replace directives, so `go tool gno` picks up the correct fork automatically. A standalone `gno` may point to upstream and miss fork-specific features.
+**Important:** Always use `go tool gno test`, not a standalone `gno` binary. The pinned `gnolang/gno@master` commit is resolved via `go mod` replace directives, so `go tool gno` picks up the correct version automatically. A standalone `gno` may be a different (older) release and miss features the realms rely on.
 
-**Important:** After `make update-fork`, run `make mod-download` to sync the gno package cache (`~/.config/gno/pkg/mod/`) with the fork. The gno toolchain resolves realm/package dependencies from this cache, not from the Go module cache. Without `mod-download`, tests may use stale versions of dependencies.
+**Important:** After `make update-fork`, run `make mod-download` to sync the gno package cache (`~/.config/gno/pkg/mod/`) with the pinned commit. The gno toolchain resolves realm/package dependencies from this cache, not from the Go module cache. Without `mod-download`, tests may use stale versions of dependencies.
 
 Run a single package's tests:
 ```bash
@@ -150,16 +150,16 @@ IBC voucher tokens (minted on RecvPacket for cross-chain tokens) use **GRC20 tok
 - `voucher/ibc/{hash}` - Token info (name, symbol, total supply)
 - `voucher/ibc/{hash}/balance/{address}` - Balance of an address
 
-## Fork Dependency Management
+## Gno Dependency Management
 
-This project depends on a **fork** of gnolang/gno at `github.com/tbruyelle/gno@tbruyelle/origin-send-filter`. The fork is managed via `go mod replace` directives in `go.mod`:
+This project tracks upstream **`gnolang/gno@master`**, pinned to a specific commit via `go mod replace` directives in `go.mod` (the `require` line stays at an older tagged release; the replace overrides it with the master commit):
 
 ```
-github.com/gnolang/gno => github.com/tbruyelle/gno@<commit-hash>
-github.com/gnolang/gno/contribs/gnodev => github.com/tbruyelle/gno/contribs/gnodev@<commit-hash>
+github.com/gnolang/gno => github.com/gnolang/gno@<commit-hash>
+github.com/gnolang/gno/contribs/gnodev => github.com/gnolang/gno/contribs/gnodev@<commit-hash>
 ```
 
-Run `make update-fork` to pull the latest fork changes (resolves the branch to a commit hash automatically).
+The target repo and branch are set by `FORK_REPO`/`FORK_BRANCH` in the `Makefile` (`github.com/gnolang/gno` / `master`). Run `make update-fork` to re-resolve the branch to its latest commit hash and rewrite the replace directives, then `make mod-download` to sync the gno package cache. (The historical project required a fork for IBC features; those now live in upstream master, hence the `gnolang/gno => gnolang/gno` self-replace pinning a recent commit.)
 
 ## Testing Patterns
 
@@ -244,7 +244,7 @@ Cross-chain e2e tests live in `e2e/`. They validate the full IBC v2 lifecycle be
 | Component | Source | Branch | Binary |
 |-----------|--------|--------|--------|
 | AtomOne | `atomone-hub/atomone` | `main` | `atomoned` |
-| Gno | `tbruyelle/gno` | `tbruyelle/origin-send-filter` | `gnodev` + `gnokey` |
+| Gno | `gnolang/gno` | `master` | `gnodev` + `gnokey` |
 | Relayer | `ghcr.io/allinbits/ibc-v2-ts-relayer:latest` | (pre-built image) | `ibc-v2-ts-relayer` |
 | tx-indexer | `ghcr.io/gnolang/tx-indexer:latest` | (pre-built image) | — |
 
@@ -269,7 +269,7 @@ e2e/
 ├── .env                    # TEST_MNEMONIC, chain IDs, receiver address
 ├── go.mod / go.sum         # Only deps: testify, godotenv
 ├── gno/
-│   ├── Dockerfile          # git clone tbruyelle/gno, builds gnodev+gnokey
+│   ├── Dockerfile          # git clone gnolang/gno@master, builds gnodev+gnokey
 │   └── entrypoint.sh       # gnodev local with resolvers for aibgno + examples
 ├── atomone/
 │   ├── Dockerfile          # git clone atomone-hub/atomone@main
