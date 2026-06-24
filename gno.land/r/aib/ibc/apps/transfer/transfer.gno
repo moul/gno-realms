@@ -31,6 +31,11 @@ func Transfer(cur realm, clientID, receiver, denom string, amount int64, timeout
 		if !cur.Previous().IsUserCall() {
 			panic("voucher transfer must be a direct user call (maketx call)")
 		}
+		// The voucher GRC20 token is burnt in OnSendPacket. Native coins sent
+		// with a voucher transfer would be stuck at this realm.
+		if len(unsafe.OriginSend()) > 0 {
+			panic("voucher transfer must not include native coins")
+		}
 		// Validate it exists and resolve the denom path.
 		if getVoucher(denom) == nil {
 			panic(ufmt.Errorf("voucher token not found for denom %s", denom))
