@@ -103,17 +103,23 @@ gno = "0.9"
 - `p/` = packages (stateless, reusable libraries)
 - `r/` = realms (stateful contracts with persistent storage)
 
-### The `cur realm` and `cross` Keywords
+### The `cur realm` and `cross` Keywords (interrealm v2 / gno 0.9)
 
-Realm functions that need caller context use `cur realm` parameter:
+Realm functions that need caller context take a `cur realm` first parameter:
 ```gno
 func CreateClient(cur realm, clientState lightclient.ClientState, ...) string
 ```
 
-Callers pass `cross` as the argument:
+Since the gno 0.9 interrealm change, **`cross` is a function** (`func cross(rlm realm) realm`), not a bare keyword. A cross-realm call applies `cross` to the current realm and passes the result as the first argument:
 ```gno
-clientID := core.CreateClient(cross, clientState, consensusState)
+clientID := core.CreateClient(cross(cur), clientState, consensusState)
 ```
+(The pre-0.9 form `core.CreateClient(cross, ...)` no longer compiles — `cross` used as a value panics with "cannot call non-function" / type errors.)
+
+A non-crossing helper called within the same realm takes `cur` directly (no `cross`), e.g. `writeRecvPacketAcknowledgement(0, cur, packet)`. The leading `0 int` is the conventional discriminator for the non-crossing `(_ int, rlm realm, …)` helper form used by grc20/banker APIs.
+
+The `realm` value exposes ACL predicates used throughout the realms:
+`cur.Address()`, `cur.PkgPath()`, `cur.Previous()`, `cur.IsUserCall()`, `cur.IsCurrent()`. The guard `cur.Previous().IsUserCall()` (true only for a direct `maketx call` from an EOA) gates value-moving entry points like `Transfer`.
 
 ### MsgRun vs MsgCall
 
@@ -121,10 +127,10 @@ Most IBC functions require `MsgRun` (not `MsgCall`) because they take complex ar
 
 ### Gno Standard Library
 
-- `chain/banker` - coin manipulation interface
+- `chain/banker` - coin manipulation interface; `banker.NewBanker(banker.BankerTypeRealmSend, rlm)` now requires the realm capability
 - `chain.Emit(eventType, kvPairs...)` - event emission
-- `runtime.OriginCaller()`, `runtime.PreviousRealm()`, `runtime.CurrentRealm()` - caller context
-- `gno.land/p/nt/avl/v0` - AVL tree (primary key-value storage)
+- `chain/runtime/unsafe` - caller context: `unsafe.OriginCaller()`, `unsafe.OriginSend()`, `unsafe.PreviousRealm()`, `unsafe.CurrentRealm()`. In interrealm v2 these moved out of `runtime` into `chain/runtime/unsafe` (the package is *named* `unsafe`, import path `chain/runtime/unsafe` — unrelated to Go's `unsafe`). Prefer the `cur realm` value's methods (`cur.Previous()`, `cur.IsUserCall()`) where caller context is available; reach for `unsafe.*` only for tx-level EOA identity (e.g. EOA-bound admin/relayer auth, packet `Sender`).
+- `gno.land/p/nt/bptree/v0` - B+ tree (primary key-value storage)
 - `gno.land/p/nt/seqid/v0` - monotonic ID generation
 - `gno.land/p/nt/ufmt/v0` - string formatting
 - `gno.land/p/nt/urequire/v0` / `gno.land/p/nt/uassert/v0` - test assertions
@@ -134,8 +140,8 @@ Most IBC functions require `MsgRun` (not `MsgCall`) because they take complex ar
 IBC voucher tokens (minted on RecvPacket for cross-chain tokens) use **GRC20 tokens** instead of native banker coins. This enables DeFi compatibility (Gnoswap, etc.) via the `grc20reg` registry.
 
 ### Key Dependencies
-- `gno.land/p/demo/tokens/grc20` - GRC20 token implementation (`NewToken`, `PrivateLedger.Mint/Burn`)
-- `gno.land/r/demo/defi/grc20reg` - Global token registry (`Register`, `Get`)
+- `gno.land/p/demo/tokens/grc20` - GRC20 token implementation. Interrealm v2 added a realm capability to the value-moving APIs: `grc20.NewToken(0, rlm, name, symbol, decimals)`, `token.RealmTeller(0, cur)`, and `teller.TransferFrom(0, cur, from, to, amount)` all take the `(_ int, rlm/cur realm, …)` non-crossing form. `PrivateLedger.Mint/Burn` move tokens without a realm arg.
+- `gno.land/r/demo/defi/grc20reg` - Global token registry (`Register(cross(cur), token, slug)`, `Get`)
 
 ### How It Works
 - **OnRecvPacket (mint)**: `getOrCreateGRC20(ibcDenom, baseDenom)` creates a GRC20 token + registers in grc20reg, then `inst.ledger.Mint(receiver, amount)`
@@ -144,7 +150,7 @@ IBC voucher tokens (minted on RecvPacket for cross-chain tokens) use **GRC20 tok
 
 ### What Uses Native Banker
 - **Escrow/unescrow** of native tokens (ugnot, etc.) still uses `chain/banker`
-- `Transfer()` is the only valid entry point for native coin transfers. It verifies the user attached the matching `-send` via `banker.OriginSend()` guarded by `runtime.PreviousRealm().IsUserCall()`. The `IsUserCall` guard is what makes `OriginSend()` trustworthy — it ensures the coins actually landed at this realm, not at an intermediate code realm that forwarded the call. The verified coin is handed off to `OnSendPacket` through a package-level pointer (`pendingNativeEscrow`) cleared by a `defer` in `Transfer` so it never leaks across txs. `OnSendPacket` doesn't re-read `OriginSend()` because its `PreviousRealm()` is the core realm and the guard would always fail there; relying on the upstream `Transfer` check is structurally simpler than re-deriving it.
+- `Transfer()` is the only valid entry point for native coin transfers. It verifies the user attached the matching `-send` via `unsafe.OriginSend()` guarded by `cur.Previous().IsUserCall()`. The `IsUserCall` guard is what makes `OriginSend()` trustworthy — it ensures the coins actually landed at this realm, not at an intermediate code realm that forwarded the call. The verified coin is handed off to `OnSendPacket` through a package-level pointer (`pendingNativeEscrow`) cleared by a `defer` in `Transfer` so it never leaks across txs. `OnSendPacket` doesn't re-read `OriginSend()` because its previous realm is the core realm and the guard would always fail there; relying on the upstream `Transfer` check is structurally simpler than re-deriving it.
 
 ### Voucher Render Endpoints
 - `voucher/ibc/{hash}` - Token info (name, symbol, total supply)
@@ -165,15 +171,16 @@ The target repo and branch are set by `FORK_REPO`/`FORK_BRANCH` in the `Makefile
 
 ### Filetests (primary test mechanism)
 
-Files named `z*_filetest.gno` in realm directories. These are integration tests that run as standalone `package main` programs with expected output matching:
+Files live in a `filetests/` subdir of each realm (e.g. `gno.land/r/aib/ibc/core/filetests/`), named `z*_filetest.gno`, and start with a `// PKGPATH:` directive (required by `-update-golden-tests`). They run as standalone `package main` programs with expected output matching. Under interrealm v2, `main` takes a `cur realm` parameter and cross-realm calls use `cross(cur)`:
 
 ```gno
+// PKGPATH: gno.land/r/aib/main
 package main
 
 import "gno.land/r/aib/ibc/core"
 
-func main() {
-    clientID := core.CreateClient(cross, clientState, consensusState)
+func main(cur realm) {
+    clientID := core.CreateClient(cross(cur), clientState, consensusState)
     println("CreateClient", clientID)
 }
 
